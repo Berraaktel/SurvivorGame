@@ -40,8 +40,14 @@ public static class FxSpawner
         go.transform.position = position;
 
         ParticleSystem ps = go.AddComponent<ParticleSystem>();
+        // AddComponent<ParticleSystem>() auto-plays immediately (playOnAwake
+        // defaults to true), which makes every property set below throw
+        // "Setting X while system is still playing is not supported."
+        // Stop it first so the whole burst gets configured before Play().
+        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
         var main = ps.main;
+        main.playOnAwake = false;
         main.duration = lifetime;
         main.loop = false;
         main.startLifetime = lifetime;
