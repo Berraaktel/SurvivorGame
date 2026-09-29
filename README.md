@@ -6,7 +6,7 @@ Built solo — design, programming, pixel-art integration, UI, and sound design 
 
 ## Features
 
-- **Auto-combat core loop**: the player automatically throws knives at the nearest enemy; survival depends entirely on movement, positioning, and the upgrades you pick.
+- **Two weapon types**: an auto-targeting thrown knife that seeks out the nearest enemy, plus a second passive weapon — a ring of blades that continuously spins around the player, damaging anything that gets close. Survival depends entirely on movement, positioning, and the upgrades you pick.
 - **Leveling & upgrades**: collect XP orbs dropped by defeated enemies, level up, and choose from randomized upgrades (move speed, max health, attack damage, attack speed, attack range).
 - **Escalating difficulty**: enemy spawn rate ramps up continuously over the first few minutes, and tougher enemy types (Scout, Brute) unlock as the player levels up — the run gets harder in two independent ways, not just "more of the same."
 - **Enemy variety**: three regular enemy types with distinct stats, scale, and movement feel, plus a recurring Boss enemy (bigger, tankier, visually distinct) that arrives on its own timer.
