@@ -105,6 +105,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton ikinci bir silah ekler: oyuncunun etrafinda surekli donen, dokundugu dusmanlara hasar veren bicaklar.", MessageType.Info);
+        if (GUILayout.Button("Build Orbit Weapon (Spinning Blades)"))
+        {
+            BuildOrbitWeapon();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton ekrana hayatta kalma suresini (MM:SS) gosteren bir sayac ekler.", MessageType.Info);
         if (GUILayout.Button("Build Survival Timer"))
         {
@@ -961,6 +968,62 @@ public class BuildGameUITool : EditorWindow
         }
         pool.projectilePrefab = projectilePrefab;
         EditorUtility.SetDirty(pool);
+    }
+
+    void BuildOrbitWeapon()
+    {
+        GameObject orbiterPrefab = CreateOrLoadOrbitBladePrefab();
+        if (orbiterPrefab == null)
+        {
+            Debug.LogWarning("Orbit blade prefab olusturulamadi.");
+            return;
+        }
+
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player objesi bulunamadi.");
+            return;
+        }
+
+        OrbitWeapon weapon = playerObj.GetComponent<OrbitWeapon>();
+        if (weapon == null) weapon = playerObj.AddComponent<OrbitWeapon>();
+        weapon.orbiterPrefab = orbiterPrefab;
+        weapon.orbiterCount = 2;
+        weapon.radius = 1.3f;
+        weapon.rotationSpeed = 140f;
+        weapon.damage = 1;
+        EditorUtility.SetDirty(weapon);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Ikinci silah kuruldu: oyuncunun etrafinda donen bicaklar.");
+        SaveScene();
+    }
+
+    GameObject CreateOrLoadOrbitBladePrefab()
+    {
+        string prefabPath = "Assets/Prefabs/OrbitBlade.prefab";
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (existing != null) return existing;
+
+        // Index 19 is the teal double-bladed axe in the Weapons tile sheet -
+        // a visually distinct silhouette and color from the orange dagger
+        // (index 8) the thrown knife uses, so the two weapons read as
+        // different things at a glance, not just a recolor of each other.
+        Sprite bladeSprite = LoadWeaponSprite(19);
+
+        GameObject temp = new GameObject("OrbitBlade");
+        SpriteRenderer sr = temp.AddComponent<SpriteRenderer>();
+        sr.sprite = bladeSprite;
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = 6;
+
+        temp.AddComponent<OrbitBlade>();
+        temp.transform.localScale = Vector3.one * 1.4f;
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, prefabPath);
+        Object.DestroyImmediate(temp);
+        return prefab;
     }
 
     void BuildSurvivalTimer()
