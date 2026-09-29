@@ -140,6 +140,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton ESC ile acilan duraklatma menusunu (Devam Et / Ayarlar / Cikis) ve ses seviyesi kaydirmalarini kurar.", MessageType.Info);
+        if (GUILayout.Button("Build Pause Menu"))
+        {
+            BuildPauseMenu();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton Build Settings'teki bos SampleScene'i cikarip gercek oyun sahnesini (player.unity) build listesine ekler, urun/sirket adini ayarlar.", MessageType.Info);
         if (GUILayout.Button("Setup Build Settings"))
         {
@@ -477,12 +484,14 @@ public class BuildGameUITool : EditorWindow
 
         Text gameOverText;
         Text restartButtonText;
-        GameObject panel = CreateGameOverPanel(canvas.transform, out gameOverText, out restartButtonText);
+        Text bestTimeText;
+        GameObject panel = CreateGameOverPanel(canvas.transform, out gameOverText, out restartButtonText, out bestTimeText);
         GameOverUI go = canvas.GetComponent<GameOverUI>();
         if (go == null) go = canvas.gameObject.AddComponent<GameOverUI>();
         go.panel = panel;
         go.gameOverText = gameOverText;
         go.restartButtonText = restartButtonText;
+        go.bestTimeText = bestTimeText;
 
         EditorUtility.SetDirty(canvas.gameObject);
         Debug.Log("Game UI olusturuldu: Canvas, HealthBar, GameOverPanel.");
@@ -560,7 +569,7 @@ public class BuildGameUITool : EditorWindow
         return fillImage;
     }
 
-    GameObject CreateGameOverPanel(Transform parent, out Text gameOverText, out Text restartButtonText)
+    GameObject CreateGameOverPanel(Transform parent, out Text gameOverText, out Text restartButtonText, out Text bestTimeText)
     {
         Transform existing = parent.Find("GameOverPanel");
         if (existing != null)
@@ -573,6 +582,15 @@ public class BuildGameUITool : EditorWindow
             Transform existingBtnText = existingBtn != null ? existingBtn.Find("Text") : null;
             restartButtonText = existingBtnText != null ? existingBtnText.GetComponent<Text>() : null;
             MakeReadable(restartButtonText, 36, 1.5f);
+
+            Transform existingBestTime = existing.Find("BestTimeText");
+            Text bestTimeTxt = existingBestTime != null ? existingBestTime.GetComponent<Text>() : null;
+            if (bestTimeTxt == null)
+            {
+                bestTimeTxt = CreateBestTimeLabel(existing, new Vector2(0.5f, 0.48f));
+            }
+            MakeReadable(bestTimeTxt, 30, 1.5f);
+            bestTimeText = bestTimeTxt;
 
             return existing.gameObject;
         }
@@ -630,10 +648,35 @@ public class BuildGameUITool : EditorWindow
         buttonTextRect.offsetMin = Vector2.zero;
         buttonTextRect.offsetMax = Vector2.zero;
 
+        Text bestTimeTxtFresh = CreateBestTimeLabel(panelGO.transform, new Vector2(0.5f, 0.48f));
+
         panelGO.SetActive(false);
         gameOverText = text;
         restartButtonText = buttonText;
+        bestTimeText = bestTimeTxtFresh;
         return panelGO;
+    }
+
+    // Small centered label used for the "best time" line on both the
+    // Game Over panel and the main menu - same look, different parent.
+    Text CreateBestTimeLabel(Transform parent, Vector2 anchor)
+    {
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        GameObject go = new GameObject("BestTimeText", typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        Text txt = go.AddComponent<Text>();
+        txt.text = "";
+        txt.font = builtinFont;
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.color = Color.white;
+        MakeReadable(txt, 30, 1.5f);
+        RectTransform rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(600f, 60f);
+        rect.anchoredPosition = Vector2.zero;
+        return txt;
     }
 
     void BuildXPSystem()
@@ -1057,8 +1100,8 @@ public class BuildGameUITool : EditorWindow
         EnsureEventSystem();
         Canvas canvas = FindOrCreateCanvas();
 
-        Text title, playText, quitText;
-        GameObject panel = CreateMainMenuPanel(canvas.transform, out title, out playText, out quitText);
+        Text title, playText, quitText, bestTimeText;
+        GameObject panel = CreateMainMenuPanel(canvas.transform, out title, out playText, out quitText, out bestTimeText);
 
         MainMenuUI menu = canvas.GetComponent<MainMenuUI>();
         if (menu == null) menu = canvas.gameObject.AddComponent<MainMenuUI>();
@@ -1066,13 +1109,14 @@ public class BuildGameUITool : EditorWindow
         menu.titleText = title;
         menu.playButtonText = playText;
         menu.quitButtonText = quitText;
+        menu.bestTimeText = bestTimeText;
 
         EditorUtility.SetDirty(canvas.gameObject);
         Debug.Log("Ana menu kuruldu (Oyna / Cikis).");
         SaveScene();
     }
 
-    GameObject CreateMainMenuPanel(Transform parent, out Text title, out Text playText, out Text quitText)
+    GameObject CreateMainMenuPanel(Transform parent, out Text title, out Text playText, out Text quitText, out Text bestTimeText)
     {
         Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -1149,9 +1193,13 @@ public class BuildGameUITool : EditorWindow
         Text quitTxt = CreatePixelButton(frameGO.transform, "QuitButton", "CIKIS", 0.22f,
             new Vector2(340f, 80f), borderColor, oliveColor, builtinFont, 30, out quitBtn);
 
+        Text bestTimeTxt = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.09f));
+        MakeReadable(bestTimeTxt, 24, 1.5f);
+
         title = titleTxt;
         playText = playTxt;
         quitText = quitTxt;
+        bestTimeText = bestTimeTxt;
         return panelGO;
     }
 
@@ -1263,5 +1311,276 @@ public class BuildGameUITool : EditorWindow
             if (s != null) return s;
         }
         return null;
+    }
+
+    void BuildPauseMenu()
+    {
+        EnsureEventSystem();
+        Canvas canvas = FindOrCreateCanvas();
+
+        Text title, resumeText, settingsText, quitText;
+        GameObject pausePanel = CreatePausePanel(canvas.transform, out title, out resumeText, out settingsText, out quitText);
+
+        Text settingsTitle, sfxLabel, musicLabel, backText;
+        Slider sfxSlider, musicSlider;
+        GameObject settingsPanel = CreateSettingsPanel(canvas.transform, out settingsTitle, out sfxLabel, out musicLabel, out backText, out sfxSlider, out musicSlider);
+
+        PauseMenuUI pause = canvas.GetComponent<PauseMenuUI>();
+        if (pause == null) pause = canvas.gameObject.AddComponent<PauseMenuUI>();
+        pause.pausePanel = pausePanel;
+        pause.settingsPanel = settingsPanel;
+        pause.titleText = title;
+        pause.resumeButtonText = resumeText;
+        pause.settingsButtonText = settingsText;
+        pause.quitButtonText = quitText;
+        pause.settingsTitleText = settingsTitle;
+        pause.sfxLabel = sfxLabel;
+        pause.musicLabel = musicLabel;
+        pause.backButtonText = backText;
+        pause.sfxSlider = sfxSlider;
+        pause.musicSlider = musicSlider;
+
+        EditorUtility.SetDirty(canvas.gameObject);
+        Debug.Log("Duraklatma menusu kuruldu (ESC ile ac/kapa, Devam Et / Ayarlar / Cikis).");
+        SaveScene();
+    }
+
+    GameObject CreatePausePanel(Transform parent, out Text title, out Text resumeText, out Text settingsText, out Text quitText)
+    {
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
+        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
+        Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
+        Color rustColor = new Color(0.76f, 0.38f, 0.16f, 1f);
+        Color oliveColor = new Color(0.46f, 0.38f, 0.22f, 1f);
+        Color slateColor = new Color(0.34f, 0.40f, 0.42f, 1f);
+
+        Transform existingOld = parent.Find("PausePanel");
+        if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
+
+        GameObject panelGO = new GameObject("PausePanel", typeof(RectTransform));
+        panelGO.transform.SetParent(parent, false);
+        panelGO.transform.SetAsLastSibling();
+        Image panelImage = panelGO.AddComponent<Image>();
+        panelImage.color = backdropColor;
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.offsetMin = Vector2.zero;
+        panelRect.offsetMax = Vector2.zero;
+
+        GameObject frameGO = new GameObject("MenuFrame", typeof(RectTransform));
+        frameGO.transform.SetParent(panelGO.transform, false);
+        Image frameBorder = frameGO.AddComponent<Image>();
+        frameBorder.color = borderColor;
+        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.sizeDelta = new Vector2(560f, 500f);
+        frameRect.anchoredPosition = Vector2.zero;
+
+        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
+        frameFillGO.transform.SetParent(frameGO.transform, false);
+        Image frameFill = frameFillGO.AddComponent<Image>();
+        frameFill.color = sandColor;
+        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
+        frameFillRect.anchorMin = Vector2.zero;
+        frameFillRect.anchorMax = Vector2.one;
+        frameFillRect.offsetMin = new Vector2(14f, 14f);
+        frameFillRect.offsetMax = new Vector2(-14f, -14f);
+
+        GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));
+        titleGO.transform.SetParent(frameGO.transform, false);
+        Text titleTxt = titleGO.AddComponent<Text>();
+        titleTxt.text = "DURAKLATILDI";
+        titleTxt.font = builtinFont;
+        titleTxt.alignment = TextAnchor.MiddleCenter;
+        titleTxt.color = Color.white;
+        MakeReadable(titleTxt, 42, 2f);
+        RectTransform titleRect = titleGO.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0.5f, 0.84f);
+        titleRect.anchorMax = new Vector2(0.5f, 0.84f);
+        titleRect.pivot = new Vector2(0.5f, 0.5f);
+        titleRect.sizeDelta = new Vector2(500f, 90f);
+        titleRect.anchoredPosition = Vector2.zero;
+
+        Button resumeBtn;
+        Text resumeTxt = CreatePixelButton(frameGO.transform, "ResumeButton", "DEVAM ET", 0.60f,
+            new Vector2(320f, 84f), borderColor, rustColor, builtinFont, 30, out resumeBtn);
+
+        Button settingsBtn;
+        Text settingsTxt = CreatePixelButton(frameGO.transform, "SettingsButton", "AYARLAR", 0.37f,
+            new Vector2(320f, 84f), borderColor, slateColor, builtinFont, 30, out settingsBtn);
+
+        Button quitBtn;
+        Text quitTxt = CreatePixelButton(frameGO.transform, "QuitButton", "CIKIS", 0.14f,
+            new Vector2(320f, 76f), borderColor, oliveColor, builtinFont, 28, out quitBtn);
+
+        title = titleTxt;
+        resumeText = resumeTxt;
+        settingsText = settingsTxt;
+        quitText = quitTxt;
+        return panelGO;
+    }
+
+    GameObject CreateSettingsPanel(Transform parent, out Text title, out Text sfxLabel, out Text musicLabel, out Text backText, out Slider sfxSlider, out Slider musicSlider)
+    {
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
+        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
+        Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
+        Color rustColor = new Color(0.76f, 0.38f, 0.16f, 1f);
+        Color oliveColor = new Color(0.46f, 0.38f, 0.22f, 1f);
+        Color trackColor = new Color(0.30f, 0.20f, 0.11f, 1f);
+
+        Transform existingOld = parent.Find("PauseSettingsPanel");
+        if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
+
+        GameObject panelGO = new GameObject("PauseSettingsPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(parent, false);
+        panelGO.transform.SetAsLastSibling();
+        Image panelImage = panelGO.AddComponent<Image>();
+        panelImage.color = backdropColor;
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.offsetMin = Vector2.zero;
+        panelRect.offsetMax = Vector2.zero;
+
+        GameObject frameGO = new GameObject("MenuFrame", typeof(RectTransform));
+        frameGO.transform.SetParent(panelGO.transform, false);
+        Image frameBorder = frameGO.AddComponent<Image>();
+        frameBorder.color = borderColor;
+        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.sizeDelta = new Vector2(560f, 460f);
+        frameRect.anchoredPosition = Vector2.zero;
+
+        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
+        frameFillGO.transform.SetParent(frameGO.transform, false);
+        Image frameFill = frameFillGO.AddComponent<Image>();
+        frameFill.color = sandColor;
+        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
+        frameFillRect.anchorMin = Vector2.zero;
+        frameFillRect.anchorMax = Vector2.one;
+        frameFillRect.offsetMin = new Vector2(14f, 14f);
+        frameFillRect.offsetMax = new Vector2(-14f, -14f);
+
+        GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));
+        titleGO.transform.SetParent(frameGO.transform, false);
+        Text titleTxt = titleGO.AddComponent<Text>();
+        titleTxt.text = "AYARLAR";
+        titleTxt.font = builtinFont;
+        titleTxt.alignment = TextAnchor.MiddleCenter;
+        titleTxt.color = Color.white;
+        MakeReadable(titleTxt, 38, 2f);
+        RectTransform titleRect = titleGO.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0.5f, 0.85f);
+        titleRect.anchorMax = new Vector2(0.5f, 0.85f);
+        titleRect.pivot = new Vector2(0.5f, 0.5f);
+        titleRect.sizeDelta = new Vector2(500f, 80f);
+        titleRect.anchoredPosition = Vector2.zero;
+
+        Text sfxLbl;
+        Slider sfxSl = CreatePixelSlider(frameGO.transform, "SfxSlider", "EFEKT SESI", 0.63f, borderColor, trackColor, rustColor, builtinFont, out sfxLbl);
+
+        Text musicLbl;
+        Slider musicSl = CreatePixelSlider(frameGO.transform, "MusicSlider", "MUZIK SESI", 0.44f, borderColor, trackColor, rustColor, builtinFont, out musicLbl);
+
+        Button backBtn;
+        Text backTxt = CreatePixelButton(frameGO.transform, "BackButton", "GERI", 0.16f,
+            new Vector2(280f, 76f), borderColor, oliveColor, builtinFont, 28, out backBtn);
+
+        title = titleTxt;
+        sfxLabel = sfxLbl;
+        musicLabel = musicLbl;
+        backText = backTxt;
+        sfxSlider = sfxSl;
+        musicSlider = musicSl;
+        return panelGO;
+    }
+
+    // Builds one labeled pixel-style volume slider: a small label above a
+    // bordered track, with a colored fill that grows/shrinks as the value
+    // changes. No drag handle - clicking/dragging anywhere on the track
+    // sets the value directly, which is easier on a trackpad than grabbing
+    // a tiny thumb.
+    Slider CreatePixelSlider(Transform parent, string name, string label, float yAnchor, Color borderColor, Color trackColor, Color fillColor, Font font, out Text labelText)
+    {
+        GameObject labelGO = new GameObject(name + "Label", typeof(RectTransform));
+        labelGO.transform.SetParent(parent, false);
+        Text labelTxt = labelGO.AddComponent<Text>();
+        labelTxt.text = label;
+        labelTxt.font = font;
+        labelTxt.alignment = TextAnchor.MiddleCenter;
+        labelTxt.color = Color.white;
+        MakeReadable(labelTxt, 22, 1.5f);
+        RectTransform labelRect = labelGO.GetComponent<RectTransform>();
+        labelRect.anchorMin = new Vector2(0.5f, yAnchor + 0.10f);
+        labelRect.anchorMax = new Vector2(0.5f, yAnchor + 0.10f);
+        labelRect.pivot = new Vector2(0.5f, 0.5f);
+        labelRect.sizeDelta = new Vector2(420f, 44f);
+        labelRect.anchoredPosition = Vector2.zero;
+
+        GameObject sliderGO = new GameObject(name, typeof(RectTransform));
+        sliderGO.transform.SetParent(parent, false);
+        RectTransform sliderRect = sliderGO.GetComponent<RectTransform>();
+        sliderRect.anchorMin = new Vector2(0.5f, yAnchor);
+        sliderRect.anchorMax = new Vector2(0.5f, yAnchor);
+        sliderRect.pivot = new Vector2(0.5f, 0.5f);
+        sliderRect.sizeDelta = new Vector2(420f, 36f);
+        sliderRect.anchoredPosition = Vector2.zero;
+
+        Image trackBorder = sliderGO.AddComponent<Image>();
+        trackBorder.color = borderColor;
+        trackBorder.raycastTarget = true;
+
+        Slider slider = sliderGO.AddComponent<Slider>();
+        slider.direction = Slider.Direction.LeftToRight;
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.wholeNumbers = false;
+
+        GameObject trackFillGO = new GameObject("Track", typeof(RectTransform));
+        trackFillGO.transform.SetParent(sliderGO.transform, false);
+        Image trackFillImg = trackFillGO.AddComponent<Image>();
+        trackFillImg.color = trackColor;
+        trackFillImg.raycastTarget = false;
+        RectTransform trackFillRect = trackFillGO.GetComponent<RectTransform>();
+        trackFillRect.anchorMin = Vector2.zero;
+        trackFillRect.anchorMax = Vector2.one;
+        trackFillRect.offsetMin = new Vector2(4f, 4f);
+        trackFillRect.offsetMax = new Vector2(-4f, -4f);
+
+        GameObject fillAreaGO = new GameObject("FillArea", typeof(RectTransform));
+        fillAreaGO.transform.SetParent(trackFillGO.transform, false);
+        RectTransform fillAreaRect = fillAreaGO.GetComponent<RectTransform>();
+        fillAreaRect.anchorMin = Vector2.zero;
+        fillAreaRect.anchorMax = Vector2.one;
+        fillAreaRect.offsetMin = Vector2.zero;
+        fillAreaRect.offsetMax = Vector2.zero;
+
+        GameObject fillGO = new GameObject("Fill", typeof(RectTransform));
+        fillGO.transform.SetParent(fillAreaGO.transform, false);
+        Image fillImg = fillGO.AddComponent<Image>();
+        fillImg.color = fillColor;
+        fillImg.raycastTarget = false;
+        RectTransform fillRect = fillGO.GetComponent<RectTransform>();
+        fillRect.anchorMin = new Vector2(0f, 0f);
+        fillRect.anchorMax = new Vector2(1f, 1f);
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+
+        slider.fillRect = fillRect;
+        slider.targetGraphic = trackBorder;
+        slider.value = 0.8f;
+
+        labelText = labelTxt;
+        return slider;
     }
 }

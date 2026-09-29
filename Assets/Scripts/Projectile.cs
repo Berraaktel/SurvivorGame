@@ -93,6 +93,8 @@ public class Projectile : MonoBehaviour
                 {
                     enemy.TakeDamage(damage);
                     if (AudioManager.Instance != null) AudioManager.Instance.PlayHit();
+                    FxSpawner.Burst(transform.position, new Color(0.95f, 0.88f, 0.6f), 6, 2f, 0.22f, 0.10f);
+                    if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.06f, 0.05f);
                     Deactivate();
                     return;
                 }

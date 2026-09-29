@@ -21,6 +21,9 @@ public class AudioManager : MonoBehaviour
     [Range(0f, 1f)] public float sfxVolume = 0.8f;
     [Range(0f, 1f)] public float musicVolume = 0.5f;
 
+    private const string SfxVolumeKey = "sfx_volume";
+    private const string MusicVolumeKey = "music_volume";
+
     private AudioSource sfxSource;
     private AudioSource musicSource;
 
@@ -35,6 +38,10 @@ public class AudioManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // Pick up a volume the player set in a previous session, if any.
+        if (PlayerPrefs.HasKey(SfxVolumeKey)) sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey);
+        if (PlayerPrefs.HasKey(MusicVolumeKey)) musicVolume = PlayerPrefs.GetFloat(MusicVolumeKey);
 
         sfxSource = gameObject.AddComponent<AudioSource>();
         sfxSource.playOnAwake = false;
@@ -63,4 +70,19 @@ public class AudioManager : MonoBehaviour
     public void PlayGameOver() { PlayOneShot(gameOverClip); }
     public void PlayClick() { PlayOneShot(clickClip); }
     public void PlayPickup() { PlayOneShot(pickupClip); }
+
+    // Called from the settings sliders. Applied immediately and saved so
+    // it persists across play sessions/builds.
+    public void SetSfxVolume(float v)
+    {
+        sfxVolume = Mathf.Clamp01(v);
+        PlayerPrefs.SetFloat(SfxVolumeKey, sfxVolume);
+    }
+
+    public void SetMusicVolume(float v)
+    {
+        musicVolume = Mathf.Clamp01(v);
+        if (musicSource != null) musicSource.volume = musicVolume;
+        PlayerPrefs.SetFloat(MusicVolumeKey, musicVolume);
+    }
 }

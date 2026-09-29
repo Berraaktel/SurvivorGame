@@ -7,6 +7,7 @@ public class GameOverUI : MonoBehaviour
     public GameObject panel;
     public Text gameOverText;
     public Text restartButtonText;
+    public Text bestTimeText;
     private PlayerHealth boundHealth;
 
     void Awake()
@@ -48,6 +49,15 @@ public class GameOverUI : MonoBehaviour
         if (panel != null) panel.SetActive(true);
         Time.timeScale = 0f;
         if (AudioManager.Instance != null) AudioManager.Instance.PlayGameOver();
+
+        if (bestTimeText != null)
+        {
+            SurvivalTimerUI timer = Object.FindFirstObjectByType<SurvivalTimerUI>();
+            float survived = timer != null ? timer.Elapsed : 0f;
+            bool isRecord = HighScoreManager.ReportRun(survived);
+            string prefix = isRecord ? Localization.Get("record_score_label") : Localization.Get("score_label");
+            bestTimeText.text = prefix + ": " + HighScoreManager.Format(HighScoreManager.GetBest());
+        }
     }
 
     public void Restart()

@@ -9,6 +9,8 @@ public class SurvivalTimerUI : MonoBehaviour
     public Text timerText;
     private float elapsed;
 
+    public float Elapsed { get { return elapsed; } }
+
     void Update()
     {
         elapsed += Time.deltaTime;

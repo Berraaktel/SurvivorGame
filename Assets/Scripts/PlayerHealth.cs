@@ -37,6 +37,9 @@ public class PlayerHealth : MonoBehaviour
 
         Debug.Log("Player health: " + currentHealth);
 
+        FxSpawner.Burst(transform.position, new Color(1f, 0.2f, 0.2f), 10, 2.5f, 0.35f, 0.13f);
+        if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.16f, 0.14f);
+
         if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
 
         if (currentHealth <= 0)

@@ -49,6 +49,8 @@ public class EnemyHealth : MonoBehaviour
                 XPOrbPool.Instance.SpawnOrb(transform.position, xpValue);
             }
             if (AudioManager.Instance != null) AudioManager.Instance.PlayEnemyDeath();
+            FxSpawner.Burst(transform.position, new Color(0.75f, 0.15f, 0.12f), 12, 3f, 0.4f, 0.14f);
+            if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.10f, 0.08f);
             gameObject.SetActive(false);
         }
     }

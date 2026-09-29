@@ -12,12 +12,19 @@ public class MainMenuUI : MonoBehaviour
     public Text titleText;
     public Text playButtonText;
     public Text quitButtonText;
+    public Text bestTimeText;
 
     void Awake()
     {
         if (titleText != null) titleText.text = Localization.Get("main_menu_title");
         if (playButtonText != null) playButtonText.text = Localization.Get("play_button");
         if (quitButtonText != null) quitButtonText.text = Localization.Get("quit_button");
+
+        if (bestTimeText != null)
+        {
+            float best = HighScoreManager.GetBest();
+            bestTimeText.text = best > 0f ? Localization.Get("score_label") + ": " + HighScoreManager.Format(best) : "";
+        }
 
         Button[] buttons = panel != null ? panel.GetComponentsInChildren<Button>(true) : new Button[0];
         foreach (Button b in buttons)
