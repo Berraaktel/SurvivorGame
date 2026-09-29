@@ -27,6 +27,12 @@ Built solo — design, programming, pixel-art integration, UI, and sound design 
 - **Art**: [Kenney](https://kenney.nl) CC0 pixel-art sprite packs (post-processed to remove a baked-in white outline artifact)
 - **Audio**: procedurally generated in Python (NumPy) — square/triangle waveforms, envelopes, and frequency sweeps, exported as WAV
 
+## Screenshots
+
+| Main menu | Gameplay | Game over |
+|---|---|---|
+| ![Main menu](docs/screenshots/main_menu.png) | ![Gameplay](docs/screenshots/gameplay_action.png) | ![Game over](docs/screenshots/game_over.png) |
+
 ## How to play
 
 - **Move**: WASD / arrow keys
