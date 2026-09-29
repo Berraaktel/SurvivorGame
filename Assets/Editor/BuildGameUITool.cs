@@ -361,8 +361,8 @@ public class BuildGameUITool : EditorWindow
             return;
         }
 
-        GameObject scout = CreateEnemyVariant(basePrefab, "Scout", 9, 2.8f, 2, 1, 1);
-        GameObject brute = CreateEnemyVariant(basePrefab, "Brute", 12, 1.2f, 6, 2, 3);
+        GameObject scout = CreateEnemyVariant(basePrefab, "Scout", 8, 2.8f, 2, 1, 1, 0.8f);
+        GameObject brute = CreateEnemyVariant(basePrefab, "Brute", 12, 1.2f, 6, 2, 3, 1.35f);
 
         GameObject spawnerObj = GameObject.Find("Spawner");
         if (spawnerObj == null)
@@ -392,7 +392,7 @@ public class BuildGameUITool : EditorWindow
         SaveScene();
     }
 
-    GameObject CreateEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue)
+    GameObject CreateEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue, float scale = 1f)
     {
         string path = "Assets/Prefabs/Enemy_" + variantName + ".prefab";
         GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -433,6 +433,15 @@ public class BuildGameUITool : EditorWindow
         {
             hp.maxHealth = maxHealth;
             hp.xpValue = xpValue;
+        }
+
+        // Scaling the whole root (not just the sprite) also scales its
+        // Collider2D, so a bigger Brute genuinely has a bigger hitbox and
+        // a smaller Scout a smaller one - consistent with how they look,
+        // not just a visual trick.
+        if (!Mathf.Approximately(scale, 1f))
+        {
+            instance.transform.localScale = Vector3.one * scale;
         }
 
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(instance, path);
