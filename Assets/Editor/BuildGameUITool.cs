@@ -363,6 +363,12 @@ public class BuildGameUITool : EditorWindow
 
         GameObject scout = CreateEnemyVariant(basePrefab, "Scout", 8, 2.8f, 2, 1, 1, 0.8f);
         GameObject brute = CreateEnemyVariant(basePrefab, "Brute", 12, 1.2f, 6, 2, 3, 1.35f);
+        // Boss: big, slow, tanky, deep-purple-tinted so it reads as a
+        // singular threat rather than another species in the rotation.
+        // It is deliberately NOT drawn into the normal random spawn pool
+        // (see the very high unlock level below) - BossSpawner brings it
+        // in on its own schedule via EnemyPool.GetEnemyOfType instead.
+        GameObject boss = CreateEnemyVariant(basePrefab, "Boss", 4, 1.0f, 50, 2, 15, 2.2f, new Color(0.45f, 0.05f, 0.55f));
 
         GameObject spawnerObj = GameObject.Find("Spawner");
         if (spawnerObj == null)
@@ -382,17 +388,28 @@ public class BuildGameUITool : EditorWindow
         List<int> unlockList = new List<int> { 1 };
         if (scout != null) { prefabList.Add(scout); unlockList.Add(2); }
         if (brute != null) { prefabList.Add(brute); unlockList.Add(3); }
+        int bossTypeIndex = -1;
+        if (boss != null) { prefabList.Add(boss); unlockList.Add(9999); bossTypeIndex = prefabList.Count - 1; }
 
         pool.enemyPrefabs = prefabList.ToArray();
         pool.unlockLevels = unlockList.ToArray();
         EditorUtility.SetDirty(pool);
+
+        if (bossTypeIndex >= 0)
+        {
+            BossSpawner bossSpawner = spawnerObj.GetComponent<BossSpawner>();
+            if (bossSpawner == null) bossSpawner = spawnerObj.AddComponent<BossSpawner>();
+            bossSpawner.bossTypeIndex = bossTypeIndex;
+            EditorUtility.SetDirty(bossSpawner);
+        }
+
         AssetDatabase.SaveAssets();
 
-        Debug.Log("Dusman cesitliligi kuruldu: Grunt (Lv1+), Scout (Lv2+), Brute (Lv3+). Toplam tip: " + pool.enemyPrefabs.Length);
+        Debug.Log("Dusman cesitliligi kuruldu: Grunt (Lv1+), Scout (Lv2+), Brute (Lv3+), Boss (periyodik). Toplam tip: " + pool.enemyPrefabs.Length);
         SaveScene();
     }
 
-    GameObject CreateEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue, float scale = 1f)
+    GameObject CreateEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue, float scale = 1f, Color? tintColor = null)
     {
         string path = "Assets/Prefabs/Enemy_" + variantName + ".prefab";
         GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -419,6 +436,13 @@ public class BuildGameUITool : EditorWindow
                 SpriteAnimator anim = visualT != null ? visualT.GetComponent<SpriteAnimator>() : null;
                 if (anim != null) anim.idleFrame = sprite;
             }
+            // A boss needs to read as unmistakably different at a glance,
+            // even before scale/silhouette register - a strong color tint
+            // on top of the base species sprite does that cheaply.
+            if (tintColor.HasValue)
+            {
+                sr.color = tintColor.Value;
+            }
         }
 
         EnemyAI ai = instance.GetComponent<EnemyAI>();
@@ -426,6 +450,10 @@ public class BuildGameUITool : EditorWindow
         {
             ai.moveSpeed = moveSpeed;
             ai.contactDamage = contactDamage;
+            // contactRange is a flat distance check, not derived from the
+            // Collider2D, so it has to be scaled explicitly too or a large
+            // variant's hitbox looks bigger than where it actually hurts you.
+            ai.contactRange = 0.3f * scale;
         }
 
         EnemyHealth hp = instance.GetComponent<EnemyHealth>();

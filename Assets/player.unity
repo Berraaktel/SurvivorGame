@@ -1843,6 +1843,7 @@ GameObject:
   - component: {fileID: 502303337}
   - component: {fileID: 502303336}
   - component: {fileID: 502303338}
+  - component: {fileID: 502303339}
   m_Layer: 0
   m_Name: Spawner
   m_TagString: Untagged
@@ -1897,8 +1898,25 @@ MonoBehaviour:
   - {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
   - {fileID: 7826719716753316515, guid: be629fa5e9a904c5c8ea74f6ee2ead6d, type: 3}
   - {fileID: 2955403765639068919, guid: 5040439c7c35d4dd39e11b521184ad03, type: 3}
-  unlockLevels: 010000000200000003000000
+  - {fileID: 2804040364194540675, guid: 8eb65b72bd7e544d89556552a185bd19, type: 3}
+  unlockLevels: 0100000002000000030000000f270000
   initialSizePerType: 8
+--- !u!114 &502303339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502303335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca84f25de1b924005b31a191daf2551e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossSpawner
+  bossTypeIndex: 3
+  firstSpawnDelay: 45
+  repeatInterval: 75
+  spawnRadius: 9
 --- !u!1 &536016151
 GameObject:
   m_ObjectHideFlags: 0

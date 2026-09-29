@@ -97,6 +97,10 @@ PrefabInstance:
       value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 5522497569510096481, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+      propertyPath: contactRange
+      value: 0.40500003
+      objectReference: {fileID: 0}
+    - target: {fileID: 5522497569510096481, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
       propertyPath: contactDamage
       value: 2
       objectReference: {fileID: 0}
