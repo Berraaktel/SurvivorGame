@@ -30,6 +30,22 @@ public class OrbitWeapon : MonoBehaviour
         }
     }
 
+    // Re-propagates a new damage value to every already-spawned orbiter.
+    // OrbitWeapon.damage alone only reaches a blade at spawn time (see
+    // Start()), so without this, the "Saldiri Hasari" level-up upgrade
+    // would silently stop affecting this weapon the moment the ring is
+    // first spawned - it would keep buffing the thrown knife only.
+    public void SetDamage(int newDamage)
+    {
+        damage = newDamage;
+        foreach (Transform t in orbiters)
+        {
+            if (t == null) continue;
+            OrbitBlade blade = t.GetComponent<OrbitBlade>();
+            if (blade != null) blade.damage = damage;
+        }
+    }
+
     void Update()
     {
         if (orbiters.Count == 0) return;

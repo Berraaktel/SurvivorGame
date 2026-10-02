@@ -22,6 +22,12 @@ public class PlayerUpgrades : MonoBehaviour
     {
         PlayerAttack pa = GetComponent<PlayerAttack>();
         if (pa != null) pa.damage += amount;
+
+        // Keep both weapons scaling together - without this the orbit
+        // blades quietly fall behind every level, since this is the only
+        // "more damage" choice the level-up screen offers.
+        OrbitWeapon ow = GetComponent<OrbitWeapon>();
+        if (ow != null) ow.SetDamage(ow.damage + amount);
     }
 
     public void ApplyAttackSpeed(float reduceSeconds)

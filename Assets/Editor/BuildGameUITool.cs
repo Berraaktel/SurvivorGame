@@ -382,7 +382,7 @@ public class BuildGameUITool : EditorWindow
         // It is deliberately NOT drawn into the normal random spawn pool
         // (see the very high unlock level below) - BossSpawner brings it
         // in on its own schedule via EnemyPool.GetEnemyOfType instead.
-        GameObject boss = CreateEnemyVariant(basePrefab, "Boss", 4, 1.0f, 50, 2, 15, 2.2f, new Color(0.45f, 0.05f, 0.55f), isBoss: true);
+        GameObject boss = CreateEnemyVariant(basePrefab, "Boss", 4, 1.0f, 35, 2, 15, 2.2f, new Color(0.45f, 0.05f, 0.55f), isBoss: true);
 
         GameObject spawnerObj = GameObject.Find("Spawner");
         if (spawnerObj == null)
