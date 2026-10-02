@@ -5,6 +5,7 @@ public class EnemyHealth : MonoBehaviour
 {
     public int maxHealth = 3;
     public int xpValue = 1;
+    public int goldValue = 1;
     // Marks this variant as the Boss species so a single, screen-level
     // UI (BossHealthBarUI) can track it without every regular enemy
     // paying for a health-change event nobody is listening to.
@@ -71,6 +72,10 @@ public class EnemyHealth : MonoBehaviour
             if (XPOrbPool.Instance != null)
             {
                 XPOrbPool.Instance.SpawnOrb(transform.position, xpValue);
+            }
+            if (GoldOrbPool.Instance != null && goldValue > 0)
+            {
+                GoldOrbPool.Instance.SpawnOrb(transform.position, goldValue);
             }
             if (AudioManager.Instance != null) AudioManager.Instance.PlayEnemyDeath();
             FxSpawner.Burst(transform.position, new Color(0.75f, 0.15f, 0.12f), 12, 3f, 0.4f, 0.14f);

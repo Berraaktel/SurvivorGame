@@ -8,6 +8,7 @@ public class GameOverUI : MonoBehaviour
     public Text gameOverText;
     public Text restartButtonText;
     public Text bestTimeText;
+    public Text goldEarnedText;
     private PlayerHealth boundHealth;
 
     void Awake()
@@ -57,6 +58,18 @@ public class GameOverUI : MonoBehaviour
             bool isRecord = HighScoreManager.ReportRun(survived);
             string prefix = isRecord ? Localization.Get("record_score_label") : Localization.Get("score_label");
             bestTimeText.text = prefix + ": " + HighScoreManager.Format(HighScoreManager.GetBest());
+        }
+
+        if (goldEarnedText != null)
+        {
+            // Gold only becomes permanent here, on death - this is the one
+            // and only place PlayerGold's run-local total gets banked into
+            // GoldManager's persistent lifetime balance.
+            PlayerGold gold = Object.FindFirstObjectByType<PlayerGold>();
+            int earned = gold != null ? gold.runGold : 0;
+            GoldManager.AddGold(earned);
+            goldEarnedText.text = Localization.Get("gold_earned_label") + ": +" + earned
+                + "  (" + Localization.Get("total_gold_label") + ": " + GoldManager.GetBalance() + ")";
         }
     }
 

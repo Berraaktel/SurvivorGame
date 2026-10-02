@@ -12,6 +12,7 @@ public class MainMenuUI : MonoBehaviour
     public Text titleText;
     public Text playButtonText;
     public Text quitButtonText;
+    public Text shopButtonText;
     public Text bestTimeText;
 
     void Awake()
@@ -19,6 +20,7 @@ public class MainMenuUI : MonoBehaviour
         if (titleText != null) titleText.text = Localization.Get("main_menu_title");
         if (playButtonText != null) playButtonText.text = Localization.Get("play_button");
         if (quitButtonText != null) quitButtonText.text = Localization.Get("quit_button");
+        if (shopButtonText != null) shopButtonText.text = Localization.Get("shop_button");
 
         if (bestTimeText != null)
         {
@@ -31,6 +33,7 @@ public class MainMenuUI : MonoBehaviour
         {
             if (b.name == "PlayButton") b.onClick.AddListener(Play);
             else if (b.name == "QuitButton") b.onClick.AddListener(Quit);
+            else if (b.name == "ShopButton") b.onClick.AddListener(OpenShop);
         }
 
         if (panel != null) panel.SetActive(true);
@@ -41,6 +44,16 @@ public class MainMenuUI : MonoBehaviour
     {
         if (AudioManager.Instance != null) AudioManager.Instance.PlayClick();
         Time.timeScale = 1f;
+        if (panel != null) panel.SetActive(false);
+    }
+
+    public void OpenShop()
+    {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayClick();
+
+        ShopUI shop = Object.FindFirstObjectByType<ShopUI>();
+        if (shop != null) shop.Open();
+
         if (panel != null) panel.SetActive(false);
     }
 

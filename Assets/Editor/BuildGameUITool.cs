@@ -77,6 +77,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton Gold orbu, pool, PlayerGold ve kalici yukseltme uygulayiciyi kurar. Magazadan satin alinan yukseltmelerin her kosuda uygulanmasi icin gerekli.", MessageType.Info);
+        if (GUILayout.Button("Build Gold System"))
+        {
+            BuildGoldSystem();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton Pixel Perfect Camera'daki 'odd resolution' uyarisini kalici olarak kapatir.", MessageType.Info);
         if (GUILayout.Button("Fix Pixel Perfect Camera Warning"))
         {
@@ -140,10 +147,17 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
-        EditorGUILayout.HelpBox("Bu buton oyun acilinca cikan basit bir ana menu (Oyna/Cikis) ekler, oyunu menu kapaninca baslatir.", MessageType.Info);
+        EditorGUILayout.HelpBox("Bu buton oyun acilinca cikan basit bir ana menu (Oyna/Cikis) ekler, oyunu menu kapaninca baslatir. Magaza butonu icin once Build Gold System calismis olmali.", MessageType.Info);
         if (GUILayout.Button("Build Main Menu"))
         {
             BuildMainMenu();
+        }
+
+        EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton Altin ile kalici yukseltme satin alinan Magaza ekranini kurar (Ana Menu > Magaza). Once Build Gold System ve Build Main Menu calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Shop"))
+        {
+            BuildShop();
         }
 
         EditorGUILayout.Space();
@@ -375,6 +389,16 @@ public class BuildGameUITool : EditorWindow
             return;
         }
 
+        // The base Grunt isn't built through CreateEnemyVariant (it IS the
+        // template CreateEnemyVariant instantiates from), so its goldValue
+        // needs setting directly here, same ratio as every variant below.
+        EnemyHealth baseHp = basePrefab.GetComponent<EnemyHealth>();
+        if (baseHp != null)
+        {
+            baseHp.goldValue = baseHp.xpValue * 3;
+            EditorUtility.SetDirty(basePrefab);
+        }
+
         GameObject scout = CreateEnemyVariant(basePrefab, "Scout", 8, 2.8f, 2, 1, 1, 0.8f);
         GameObject brute = CreateEnemyVariant(basePrefab, "Brute", 12, 1.2f, 6, 2, 3, 1.35f);
         // Boss: big, slow, tanky, deep-purple-tinted so it reads as a
@@ -562,6 +586,11 @@ public class BuildGameUITool : EditorWindow
             hp.maxHealth = maxHealth;
             hp.xpValue = xpValue;
             hp.isBoss = isBoss;
+            // Simple fixed ratio to XP rather than a separate tuning knob
+            // per variant - keeps Gold income roughly proportional to how
+            // much of a threat (and therefore how much the kill was worth)
+            // each enemy type already represents.
+            hp.goldValue = xpValue * 3;
         }
 
         // Scaling the whole root (not just the sprite) also scales its
@@ -623,13 +652,15 @@ public class BuildGameUITool : EditorWindow
         Text gameOverText;
         Text restartButtonText;
         Text bestTimeText;
-        GameObject panel = CreateGameOverPanel(canvas.transform, out gameOverText, out restartButtonText, out bestTimeText);
+        Text goldEarnedText;
+        GameObject panel = CreateGameOverPanel(canvas.transform, out gameOverText, out restartButtonText, out bestTimeText, out goldEarnedText);
         GameOverUI go = canvas.GetComponent<GameOverUI>();
         if (go == null) go = canvas.gameObject.AddComponent<GameOverUI>();
         go.panel = panel;
         go.gameOverText = gameOverText;
         go.restartButtonText = restartButtonText;
         go.bestTimeText = bestTimeText;
+        go.goldEarnedText = goldEarnedText;
 
         EditorUtility.SetDirty(canvas.gameObject);
         Debug.Log("Game UI olusturuldu: Canvas, HealthBar, GameOverPanel.");
@@ -707,7 +738,7 @@ public class BuildGameUITool : EditorWindow
         return fillImage;
     }
 
-    GameObject CreateGameOverPanel(Transform parent, out Text gameOverText, out Text restartButtonText, out Text bestTimeText)
+    GameObject CreateGameOverPanel(Transform parent, out Text gameOverText, out Text restartButtonText, out Text bestTimeText, out Text goldEarnedText)
     {
         Transform existing = parent.Find("GameOverPanel");
         if (existing != null)
@@ -729,6 +760,15 @@ public class BuildGameUITool : EditorWindow
             }
             MakeReadable(bestTimeTxt, 30, 1.5f);
             bestTimeText = bestTimeTxt;
+
+            Transform existingGoldEarned = existing.Find("GoldEarnedText");
+            Text goldEarnedTxt = existingGoldEarned != null ? existingGoldEarned.GetComponent<Text>() : null;
+            if (goldEarnedTxt == null)
+            {
+                goldEarnedTxt = CreateGoldEarnedLabel(existing, new Vector2(0.5f, 0.56f));
+            }
+            MakeReadable(goldEarnedTxt, 30, 1.5f);
+            goldEarnedText = goldEarnedTxt;
 
             return existing.gameObject;
         }
@@ -787,11 +827,13 @@ public class BuildGameUITool : EditorWindow
         buttonTextRect.offsetMax = Vector2.zero;
 
         Text bestTimeTxtFresh = CreateBestTimeLabel(panelGO.transform, new Vector2(0.5f, 0.48f));
+        Text goldEarnedTxtFresh = CreateGoldEarnedLabel(panelGO.transform, new Vector2(0.5f, 0.56f));
 
         panelGO.SetActive(false);
         gameOverText = text;
         restartButtonText = buttonText;
         bestTimeText = bestTimeTxtFresh;
+        goldEarnedText = goldEarnedTxtFresh;
         return panelGO;
     }
 
@@ -807,6 +849,28 @@ public class BuildGameUITool : EditorWindow
         txt.font = builtinFont;
         txt.alignment = TextAnchor.MiddleCenter;
         txt.color = Color.white;
+        MakeReadable(txt, 30, 1.5f);
+        RectTransform rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(600f, 60f);
+        rect.anchoredPosition = Vector2.zero;
+        return txt;
+    }
+
+    // Small centered label used for the "gold earned this run" line on the
+    // Game Over panel - same look as CreateBestTimeLabel, own GameObject name.
+    Text CreateGoldEarnedLabel(Transform parent, Vector2 anchor)
+    {
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        GameObject go = new GameObject("GoldEarnedText", typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        Text txt = go.AddComponent<Text>();
+        txt.text = "";
+        txt.font = builtinFont;
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.color = new Color(1f, 0.84f, 0f);
         MakeReadable(txt, 30, 1.5f);
         RectTransform rect = go.GetComponent<RectTransform>();
         rect.anchorMin = anchor;
@@ -908,6 +972,96 @@ public class BuildGameUITool : EditorWindow
         if (playerObj.GetComponent<PlayerXP>() == null)
         {
             playerObj.AddComponent<PlayerXP>();
+        }
+    }
+
+    void BuildGoldSystem()
+    {
+        GameObject orbPrefab = CreateOrLoadGoldOrbPrefab();
+        if (orbPrefab == null)
+        {
+            Debug.LogWarning("Gold orb prefab olusturulamadi.");
+            return;
+        }
+
+        EnsureGoldOrbPool(orbPrefab);
+        EnsurePlayerGold();
+        EnsureApplyPermanentUpgrades();
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Altin sistemi kuruldu: Gold orb prefab, pool, PlayerGold, kalici yukseltme uygulayici.");
+        SaveScene();
+    }
+
+    GameObject CreateOrLoadGoldOrbPrefab()
+    {
+        string prefabPath = "Assets/Prefabs/GoldOrb.prefab";
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (existing != null) return existing;
+
+        // Same tile as the XP orb, gold-tinted - cheap, consistent way to
+        // read as a different pickup without needing new art (same trick
+        // CreateEnemyVariant uses to make the Boss read as distinct).
+        Sprite orbSprite = LoadTileSprite(39);
+
+        GameObject temp = new GameObject("GoldOrb");
+        SpriteRenderer sr = temp.AddComponent<SpriteRenderer>();
+        sr.sprite = orbSprite;
+        sr.color = new Color(1f, 0.84f, 0f);
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = 5;
+
+        CircleCollider2D col = temp.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.3f;
+
+        temp.AddComponent<GoldOrb>();
+        temp.transform.localScale = Vector3.one * 1.5f;
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, prefabPath);
+        Object.DestroyImmediate(temp);
+        return prefab;
+    }
+
+    void EnsureGoldOrbPool(GameObject orbPrefab)
+    {
+        GoldOrbPool pool = Object.FindFirstObjectByType<GoldOrbPool>();
+        if (pool == null)
+        {
+            GameObject poolGO = new GameObject("GoldOrbPool");
+            pool = poolGO.AddComponent<GoldOrbPool>();
+        }
+        pool.orbPrefab = orbPrefab;
+        EditorUtility.SetDirty(pool);
+    }
+
+    void EnsurePlayerGold()
+    {
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player tagli obje bulunamadi.");
+            return;
+        }
+
+        if (playerObj.GetComponent<PlayerGold>() == null)
+        {
+            playerObj.AddComponent<PlayerGold>();
+        }
+    }
+
+    void EnsureApplyPermanentUpgrades()
+    {
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player tagli obje bulunamadi.");
+            return;
+        }
+
+        if (playerObj.GetComponent<ApplyPermanentUpgrades>() == null)
+        {
+            playerObj.AddComponent<ApplyPermanentUpgrades>();
         }
     }
 
@@ -1294,14 +1448,15 @@ public class BuildGameUITool : EditorWindow
         EnsureEventSystem();
         Canvas canvas = FindOrCreateCanvas();
 
-        Text title, playText, quitText, bestTimeText;
-        GameObject panel = CreateMainMenuPanel(canvas.transform, out title, out playText, out quitText, out bestTimeText);
+        Text title, playText, shopText, quitText, bestTimeText;
+        GameObject panel = CreateMainMenuPanel(canvas.transform, out title, out playText, out shopText, out quitText, out bestTimeText);
 
         MainMenuUI menu = canvas.GetComponent<MainMenuUI>();
         if (menu == null) menu = canvas.gameObject.AddComponent<MainMenuUI>();
         menu.panel = panel;
         menu.titleText = title;
         menu.playButtonText = playText;
+        menu.shopButtonText = shopText;
         menu.quitButtonText = quitText;
         menu.bestTimeText = bestTimeText;
 
@@ -1310,7 +1465,7 @@ public class BuildGameUITool : EditorWindow
         SaveScene();
     }
 
-    GameObject CreateMainMenuPanel(Transform parent, out Text title, out Text playText, out Text quitText, out Text bestTimeText)
+    GameObject CreateMainMenuPanel(Transform parent, out Text title, out Text playText, out Text shopText, out Text quitText, out Text bestTimeText)
     {
         Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -1324,6 +1479,7 @@ public class BuildGameUITool : EditorWindow
         Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
         Color rustColor = new Color(0.76f, 0.38f, 0.16f, 1f);
         Color oliveColor = new Color(0.46f, 0.38f, 0.22f, 1f);
+        Color slateMenuColor = new Color(0.34f, 0.40f, 0.42f, 1f);
 
         Transform existingOld = parent.Find("MainMenuPanel");
         if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
@@ -1351,7 +1507,7 @@ public class BuildGameUITool : EditorWindow
         frameRect.anchorMin = new Vector2(0.5f, 0.5f);
         frameRect.anchorMax = new Vector2(0.5f, 0.5f);
         frameRect.pivot = new Vector2(0.5f, 0.5f);
-        frameRect.sizeDelta = new Vector2(680f, 480f);
+        frameRect.sizeDelta = new Vector2(680f, 560f);
         frameRect.anchoredPosition = Vector2.zero;
 
         GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
@@ -1373,25 +1529,30 @@ public class BuildGameUITool : EditorWindow
         titleTxt.color = Color.white;
         MakeReadable(titleTxt, 56, 2.5f);
         RectTransform titleRect = titleGO.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0.5f, 0.78f);
-        titleRect.anchorMax = new Vector2(0.5f, 0.78f);
+        titleRect.anchorMin = new Vector2(0.5f, 0.82f);
+        titleRect.anchorMax = new Vector2(0.5f, 0.82f);
         titleRect.pivot = new Vector2(0.5f, 0.5f);
         titleRect.sizeDelta = new Vector2(620f, 120f);
         titleRect.anchoredPosition = Vector2.zero;
 
         Button playBtn;
-        Text playTxt = CreatePixelButton(frameGO.transform, "PlayButton", "OYNA", 0.46f,
+        Text playTxt = CreatePixelButton(frameGO.transform, "PlayButton", "OYNA", 0.56f,
             new Vector2(340f, 92f), borderColor, rustColor, builtinFont, 36, out playBtn);
 
+        Button shopBtn;
+        Text shopTxt = CreatePixelButton(frameGO.transform, "ShopButton", "MAGAZA", 0.36f,
+            new Vector2(340f, 80f), borderColor, slateMenuColor, builtinFont, 30, out shopBtn);
+
         Button quitBtn;
-        Text quitTxt = CreatePixelButton(frameGO.transform, "QuitButton", "CIKIS", 0.22f,
+        Text quitTxt = CreatePixelButton(frameGO.transform, "QuitButton", "CIKIS", 0.18f,
             new Vector2(340f, 80f), borderColor, oliveColor, builtinFont, 30, out quitBtn);
 
-        Text bestTimeTxt = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.09f));
+        Text bestTimeTxt = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.045f));
         MakeReadable(bestTimeTxt, 24, 1.5f);
 
         title = titleTxt;
         playText = playTxt;
+        shopText = shopTxt;
         quitText = quitTxt;
         bestTimeText = bestTimeTxt;
         return panelGO;
@@ -1445,6 +1606,223 @@ public class BuildGameUITool : EditorWindow
         textRect.offsetMax = Vector2.zero;
 
         return txt;
+    }
+
+    void BuildShop()
+    {
+        EnsureEventSystem();
+        Canvas canvas = FindOrCreateCanvas();
+
+        Text header, goldBalance, backText;
+        Text[] titles, descs, buttonLabels;
+        Button[] buttons;
+        Button backBtn;
+        GameObject panel = CreateShopPanel(canvas.transform, out header, out goldBalance,
+            out titles, out descs, out buttonLabels, out buttons, out backBtn, out backText);
+
+        ShopUI shop = canvas.GetComponent<ShopUI>();
+        if (shop == null) shop = canvas.gameObject.AddComponent<ShopUI>();
+        shop.panel = panel;
+        shop.headerText = header;
+        shop.goldBalanceText = goldBalance;
+        shop.optionTitles = titles;
+        shop.optionDescriptions = descs;
+        shop.optionButtonLabels = buttonLabels;
+        shop.optionButtons = buttons;
+        shop.backButton = backBtn;
+
+        EditorUtility.SetDirty(canvas.gameObject);
+        Debug.Log("Magaza kuruldu.");
+        SaveScene();
+    }
+
+    GameObject CreateShopPanel(Transform parent, out Text header, out Text goldBalance,
+        out Text[] titles, out Text[] descs, out Text[] buttonLabels, out Button[] buttons,
+        out Button backButton, out Text backText)
+    {
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
+        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
+        Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
+        Color rowColor = new Color(0.46f, 0.38f, 0.22f, 1f);
+        Color buyColor = new Color(0.76f, 0.38f, 0.16f, 1f);
+        Color oliveColor = new Color(0.46f, 0.38f, 0.22f, 1f);
+
+        Transform existingOld = parent.Find("ShopPanel");
+        if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
+
+        GameObject panelGO = new GameObject("ShopPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(parent, false);
+        panelGO.transform.SetAsLastSibling();
+        Image panelImage = panelGO.AddComponent<Image>();
+        panelImage.color = backdropColor;
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.offsetMin = Vector2.zero;
+        panelRect.offsetMax = Vector2.zero;
+
+        GameObject frameGO = new GameObject("MenuFrame", typeof(RectTransform));
+        frameGO.transform.SetParent(panelGO.transform, false);
+        Image frameBorder = frameGO.AddComponent<Image>();
+        frameBorder.color = borderColor;
+        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.sizeDelta = new Vector2(860f, 760f);
+        frameRect.anchoredPosition = Vector2.zero;
+
+        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
+        frameFillGO.transform.SetParent(frameGO.transform, false);
+        Image frameFill = frameFillGO.AddComponent<Image>();
+        frameFill.color = sandColor;
+        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
+        frameFillRect.anchorMin = Vector2.zero;
+        frameFillRect.anchorMax = Vector2.one;
+        frameFillRect.offsetMin = new Vector2(14f, 14f);
+        frameFillRect.offsetMax = new Vector2(-14f, -14f);
+
+        GameObject headerGO = new GameObject("HeaderText", typeof(RectTransform));
+        headerGO.transform.SetParent(frameGO.transform, false);
+        Text headerTxt = headerGO.AddComponent<Text>();
+        headerTxt.text = "MAGAZA";
+        headerTxt.font = builtinFont;
+        headerTxt.alignment = TextAnchor.MiddleCenter;
+        headerTxt.color = Color.white;
+        MakeReadable(headerTxt, 48, 2f);
+        RectTransform headerRect = headerGO.GetComponent<RectTransform>();
+        headerRect.anchorMin = new Vector2(0.5f, 0.93f);
+        headerRect.anchorMax = new Vector2(0.5f, 0.93f);
+        headerRect.pivot = new Vector2(0.5f, 0.5f);
+        headerRect.sizeDelta = new Vector2(700f, 90f);
+        headerRect.anchoredPosition = Vector2.zero;
+
+        GameObject goldGO = new GameObject("GoldBalanceText", typeof(RectTransform));
+        goldGO.transform.SetParent(frameGO.transform, false);
+        Text goldTxt = goldGO.AddComponent<Text>();
+        goldTxt.text = "";
+        goldTxt.font = builtinFont;
+        goldTxt.alignment = TextAnchor.MiddleCenter;
+        goldTxt.color = new Color(1f, 0.84f, 0f);
+        MakeReadable(goldTxt, 30, 1.5f);
+        RectTransform goldRect = goldGO.GetComponent<RectTransform>();
+        goldRect.anchorMin = new Vector2(0.5f, 0.84f);
+        goldRect.anchorMax = new Vector2(0.5f, 0.84f);
+        goldRect.pivot = new Vector2(0.5f, 0.5f);
+        goldRect.sizeDelta = new Vector2(500f, 70f);
+        goldRect.anchoredPosition = Vector2.zero;
+
+        titles = new Text[3];
+        descs = new Text[3];
+        buttonLabels = new Text[3];
+        buttons = new Button[3];
+
+        float[] rowY = { 0.66f, 0.44f, 0.22f };
+        for (int i = 0; i < 3; i++)
+        {
+            Text rowTitle, rowDesc, rowBtnLabel;
+            Button rowBtn;
+            CreateShopRow(frameGO.transform, i, rowY[i], rowColor, buyColor, builtinFont,
+                out rowTitle, out rowDesc, out rowBtnLabel, out rowBtn);
+            titles[i] = rowTitle;
+            descs[i] = rowDesc;
+            buttonLabels[i] = rowBtnLabel;
+            buttons[i] = rowBtn;
+        }
+
+        Button backBtn;
+        Text backTxt = CreatePixelButton(frameGO.transform, "BackButton", "GERI", 0.06f,
+            new Vector2(280f, 70f), borderColor, oliveColor, builtinFont, 28, out backBtn);
+
+        // Starts hidden - ShopUI.Open() (called from MainMenuUI.OpenShop)
+        // is what shows it. Without this it would render on top of the
+        // MainMenuPanel on scene start, since both are active by default.
+        panelGO.SetActive(false);
+
+        header = headerTxt;
+        goldBalance = goldTxt;
+        backButton = backBtn;
+        backText = backTxt;
+        return panelGO;
+    }
+
+    // One shop row: a bordered card with a title/description on the left
+    // and a Buy button on the right - same desert palette as the rest of
+    // the menus, just laid out horizontally instead of stacked.
+    void CreateShopRow(Transform parent, int index, float yAnchor, Color rowColor, Color buyColor, Font font,
+        out Text title, out Text desc, out Text buttonLabel, out Button button)
+    {
+        GameObject rowGO = new GameObject("ShopRow_" + index, typeof(RectTransform));
+        rowGO.transform.SetParent(parent, false);
+        Image rowImg = rowGO.AddComponent<Image>();
+        rowImg.color = rowColor;
+        RectTransform rowRect = rowGO.GetComponent<RectTransform>();
+        rowRect.anchorMin = new Vector2(0.5f, yAnchor);
+        rowRect.anchorMax = new Vector2(0.5f, yAnchor);
+        rowRect.pivot = new Vector2(0.5f, 0.5f);
+        rowRect.sizeDelta = new Vector2(760f, 150f);
+        rowRect.anchoredPosition = Vector2.zero;
+
+        GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));
+        titleGO.transform.SetParent(rowGO.transform, false);
+        Text titleTxt = titleGO.AddComponent<Text>();
+        titleTxt.text = "Upgrade";
+        titleTxt.font = font;
+        titleTxt.alignment = TextAnchor.MiddleCenter;
+        titleTxt.color = Color.white;
+        MakeReadable(titleTxt, 30, 1.5f);
+        RectTransform titleRect = titleGO.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0f, 0.55f);
+        titleRect.anchorMax = new Vector2(0.62f, 1f);
+        titleRect.offsetMin = new Vector2(16f, 0f);
+        titleRect.offsetMax = new Vector2(-8f, -8f);
+
+        GameObject descGO = new GameObject("DescText", typeof(RectTransform));
+        descGO.transform.SetParent(rowGO.transform, false);
+        Text descTxt = descGO.AddComponent<Text>();
+        descTxt.text = "Aciklama";
+        descTxt.font = font;
+        descTxt.alignment = TextAnchor.MiddleCenter;
+        descTxt.color = new Color(0.95f, 0.95f, 0.95f, 1f);
+        MakeReadable(descTxt, 20, 1f);
+        descTxt.fontStyle = FontStyle.Normal;
+        RectTransform descRect = descGO.GetComponent<RectTransform>();
+        descRect.anchorMin = new Vector2(0f, 0f);
+        descRect.anchorMax = new Vector2(0.62f, 0.55f);
+        descRect.offsetMin = new Vector2(16f, 8f);
+        descRect.offsetMax = new Vector2(-8f, 0f);
+
+        GameObject btnGO = new GameObject("BuyButton", typeof(RectTransform));
+        btnGO.transform.SetParent(rowGO.transform, false);
+        Image btnImg = btnGO.AddComponent<Image>();
+        btnImg.color = buyColor;
+        Button btn = btnGO.AddComponent<Button>();
+        RectTransform btnRect = btnGO.GetComponent<RectTransform>();
+        btnRect.anchorMin = new Vector2(0.66f, 0.15f);
+        btnRect.anchorMax = new Vector2(0.98f, 0.85f);
+        btnRect.offsetMin = Vector2.zero;
+        btnRect.offsetMax = Vector2.zero;
+
+        GameObject btnTextGO = new GameObject("Text", typeof(RectTransform));
+        btnTextGO.transform.SetParent(btnGO.transform, false);
+        Text btnTxt = btnTextGO.AddComponent<Text>();
+        btnTxt.text = "SATIN AL";
+        btnTxt.font = font;
+        btnTxt.alignment = TextAnchor.MiddleCenter;
+        btnTxt.color = Color.white;
+        MakeReadable(btnTxt, 22, 1.5f);
+        RectTransform btnTextRect = btnTextGO.GetComponent<RectTransform>();
+        btnTextRect.anchorMin = Vector2.zero;
+        btnTextRect.anchorMax = Vector2.one;
+        btnTextRect.offsetMin = new Vector2(4f, 4f);
+        btnTextRect.offsetMax = new Vector2(-4f, -4f);
+
+        title = titleTxt;
+        desc = descTxt;
+        buttonLabel = btnTxt;
+        button = btn;
     }
 
     void BuildAudioSystem()
