@@ -5,6 +5,20 @@ public class EnemyHealth : MonoBehaviour
 {
     public int maxHealth = 3;
     public int xpValue = 1;
+    // Marks this variant as the Boss species so a single, screen-level
+    // UI (BossHealthBarUI) can track it without every regular enemy
+    // paying for a health-change event nobody is listening to.
+    public bool isBoss = false;
+
+    // The currently-alive boss, if any. Set/cleared in OnEnable/OnDisable
+    // rather than searched for every frame by the UI - there is at most
+    // one boss alive at a time by design (BossSpawner), so a static
+    // pointer is simpler and cheaper than a scene-wide find.
+    public static EnemyHealth ActiveBoss;
+
+    public event System.Action<int, int> OnHealthChanged;
+    public int CurrentHealth { get { return currentHealth; } }
+
     private int currentHealth;
     private SpriteRenderer sr;
     private Color originalColor;
@@ -33,11 +47,21 @@ public class EnemyHealth : MonoBehaviour
         // color and no leftover coroutine reference.
         flashRoutine = null;
         if (sr != null) sr.color = originalColor;
+
+        if (isBoss) ActiveBoss = this;
+        if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
+    }
+
+    void OnDisable()
+    {
+        if (isBoss && ActiveBoss == this) ActiveBoss = null;
     }
 
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
+
+        if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
 
         if (flashRoutine != null) StopCoroutine(flashRoutine);
         flashRoutine = StartCoroutine(FlashRed());

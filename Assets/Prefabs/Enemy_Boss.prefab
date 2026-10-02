@@ -81,6 +81,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3544737434916047544, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+      propertyPath: isBoss
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3544737434916047544, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
       propertyPath: xpValue
       value: 15
       objectReference: {fileID: 0}

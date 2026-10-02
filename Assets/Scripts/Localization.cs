@@ -28,6 +28,7 @@ public static class Localization
         { "record_score_label", new Dictionary<string, string> { { "tr", "REKOR SKOR" }, { "en", "RECORD SCORE" } } },
         { "restart", new Dictionary<string, string> { { "tr", "Yeniden Basla" }, { "en", "Restart" } } },
         { "level_up", new Dictionary<string, string> { { "tr", "SEVIYE ATLADIN!" }, { "en", "LEVEL UP!" } } },
+        { "boss_label", new Dictionary<string, string> { { "tr", "BOSS" }, { "en", "BOSS" } } },
 
         { "upgrade_speed_title", new Dictionary<string, string> { { "tr", "Hareket Hizi" }, { "en", "Move Speed" } } },
         { "upgrade_speed_desc", new Dictionary<string, string> { { "tr", "Daha hizli hareket et" }, { "en", "Move faster" } } },

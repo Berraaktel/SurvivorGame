@@ -91,6 +91,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton, Boss hayattayken ekranin ustunde canini gosteren bir bar kurar. Once Build Enemy Variety calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Boss Health Bar"))
+        {
+            BuildBossHealthBar();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton seviye atlayinca cikan 3 secenekli yukseltme ekranini kurar.", MessageType.Info);
         if (GUILayout.Button("Build Upgrade System"))
         {
@@ -375,7 +382,7 @@ public class BuildGameUITool : EditorWindow
         // It is deliberately NOT drawn into the normal random spawn pool
         // (see the very high unlock level below) - BossSpawner brings it
         // in on its own schedule via EnemyPool.GetEnemyOfType instead.
-        GameObject boss = CreateEnemyVariant(basePrefab, "Boss", 4, 1.0f, 50, 2, 15, 2.2f, new Color(0.45f, 0.05f, 0.55f));
+        GameObject boss = CreateEnemyVariant(basePrefab, "Boss", 4, 1.0f, 50, 2, 15, 2.2f, new Color(0.45f, 0.05f, 0.55f), isBoss: true);
 
         GameObject spawnerObj = GameObject.Find("Spawner");
         if (spawnerObj == null)
@@ -416,7 +423,93 @@ public class BuildGameUITool : EditorWindow
         SaveScene();
     }
 
-    GameObject CreateEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue, float scale = 1f, Color? tintColor = null)
+    void BuildBossHealthBar()
+    {
+        EnsureEventSystem();
+
+        Canvas canvas = FindOrCreateCanvas();
+
+        Image fillImage;
+        GameObject panelRoot = CreateBossHealthBar(canvas.transform, out fillImage);
+
+        BossHealthBarUI bossBar = canvas.GetComponent<BossHealthBarUI>();
+        if (bossBar == null) bossBar = canvas.gameObject.AddComponent<BossHealthBarUI>();
+        bossBar.panelRoot = panelRoot;
+        bossBar.fillImage = fillImage;
+
+        EditorUtility.SetDirty(canvas.gameObject);
+        Debug.Log("Boss health bar kuruldu.");
+        SaveScene();
+    }
+
+    GameObject CreateBossHealthBar(Transform parent, out Image fillImage)
+    {
+        Transform existingPanel = parent.Find("BossHealthBarPanel");
+        if (existingPanel != null)
+        {
+            Transform existingBg = existingPanel.Find("BossHealthBarBackground");
+            Transform existingFill = existingBg != null ? existingBg.Find("BossHealthBarFill") : null;
+            Image existingImg = existingFill != null ? existingFill.GetComponent<Image>() : null;
+            if (existingImg != null)
+            {
+                existingImg.sprite = GetOrCreateFlatSprite();
+                existingImg.type = Image.Type.Filled;
+                fillImage = existingImg;
+                existingPanel.gameObject.SetActive(false);
+                return existingPanel.gameObject;
+            }
+        }
+
+        GameObject panelGO = new GameObject("BossHealthBarPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(parent, false);
+
+        GameObject labelGO = new GameObject("BossLabel", typeof(RectTransform));
+        labelGO.transform.SetParent(panelGO.transform, false);
+        Text labelText = labelGO.AddComponent<Text>();
+        labelText.text = Localization.Get("boss_label");
+        labelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        labelText.alignment = TextAnchor.LowerCenter;
+        labelText.color = new Color(0.85f, 0.35f, 0.95f, 1f);
+        MakeReadable(labelText, 20, 1f);
+        RectTransform labelRect = labelGO.GetComponent<RectTransform>();
+        labelRect.anchorMin = new Vector2(0.5f, 1f);
+        labelRect.anchorMax = new Vector2(0.5f, 1f);
+        labelRect.pivot = new Vector2(0.5f, 1f);
+        labelRect.anchoredPosition = new Vector2(0f, -24f);
+        labelRect.sizeDelta = new Vector2(400f, 22f);
+
+        GameObject bgGO = new GameObject("BossHealthBarBackground", typeof(RectTransform));
+        bgGO.transform.SetParent(panelGO.transform, false);
+        Image bgImage = bgGO.AddComponent<Image>();
+        bgImage.color = new Color(0f, 0f, 0f, 0.6f);
+        RectTransform bgRect = bgGO.GetComponent<RectTransform>();
+        bgRect.anchorMin = new Vector2(0.5f, 1f);
+        bgRect.anchorMax = new Vector2(0.5f, 1f);
+        bgRect.pivot = new Vector2(0.5f, 1f);
+        bgRect.anchoredPosition = new Vector2(0f, -48f);
+        bgRect.sizeDelta = new Vector2(420f, 22f);
+
+        GameObject fillGO = new GameObject("BossHealthBarFill", typeof(RectTransform));
+        fillGO.transform.SetParent(bgGO.transform, false);
+        Image fillImg = fillGO.AddComponent<Image>();
+        fillImg.sprite = GetOrCreateFlatSprite();
+        fillImg.color = new Color(0.55f, 0.1f, 0.65f, 1f);
+        fillImg.type = Image.Type.Filled;
+        fillImg.fillMethod = Image.FillMethod.Horizontal;
+        fillImg.fillOrigin = 0;
+        fillImg.fillAmount = 1f;
+        RectTransform fillRect = fillGO.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = new Vector2(3f, 3f);
+        fillRect.offsetMax = new Vector2(-3f, -3f);
+
+        panelGO.SetActive(false);
+        fillImage = fillImg;
+        return panelGO;
+    }
+
+    GameObject CreateEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue, float scale = 1f, Color? tintColor = null, bool isBoss = false)
     {
         string path = "Assets/Prefabs/Enemy_" + variantName + ".prefab";
         GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -468,6 +561,7 @@ public class BuildGameUITool : EditorWindow
         {
             hp.maxHealth = maxHealth;
             hp.xpValue = xpValue;
+            hp.isBoss = isBoss;
         }
 
         // Scaling the whole root (not just the sprite) also scales its
