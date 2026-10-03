@@ -70,6 +70,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton ekranin sol altina dokunmatik hareket joystick'i ekler - telefonda/tablette oynanabilmesi icin gerekli, klavye ile test etmeyi bozmaz.", MessageType.Info);
+        if (GUILayout.Button("Build Virtual Joystick"))
+        {
+            BuildVirtualJoystick();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton XP orbu, pool, PlayerXP ve XP barini kurar.", MessageType.Info);
         if (GUILayout.Button("Build XP System"))
         {
@@ -692,6 +699,74 @@ public class BuildGameUITool : EditorWindow
 
         canvasGO.AddComponent<GraphicRaycaster>();
         return canvas;
+    }
+
+    void BuildVirtualJoystick()
+    {
+        EnsureEventSystem();
+        Canvas canvas = FindOrCreateCanvas();
+
+        CreateVirtualJoystick(canvas.transform);
+
+        Debug.Log("Hareket joystick'i kuruldu (sol alt, dokunmatik).");
+        SaveScene();
+    }
+
+    // Bottom-left on-screen movement stick: same border+fill "chunky
+    // pixel" bevel as every other panel in this project (a round knob
+    // would look out of place next to all the square-bevel buttons/menus),
+    // semi-transparent so it doesn't obscure the desert tilemap underneath
+    // it. VirtualJoystick.cs does the actual drag math; this just builds
+    // the three rects it needs (base, fill, handle).
+    GameObject CreateVirtualJoystick(Transform parent)
+    {
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 0.55f);
+        Color fillColor = new Color(0.86f, 0.66f, 0.38f, 0.30f);
+        Color handleColor = new Color(0.76f, 0.38f, 0.16f, 0.80f);
+
+        Transform existing = parent.Find("VirtualJoystick");
+        if (existing != null) Object.DestroyImmediate(existing.gameObject);
+
+        GameObject baseGO = new GameObject("VirtualJoystick", typeof(RectTransform));
+        baseGO.transform.SetParent(parent, false);
+        Image baseImg = baseGO.AddComponent<Image>();
+        baseImg.color = borderColor;
+        RectTransform baseRect = baseGO.GetComponent<RectTransform>();
+        baseRect.anchorMin = new Vector2(0f, 0f);
+        baseRect.anchorMax = new Vector2(0f, 0f);
+        baseRect.pivot = new Vector2(0.5f, 0.5f);
+        baseRect.sizeDelta = new Vector2(180f, 180f);
+        baseRect.anchoredPosition = new Vector2(130f, 130f);
+
+        GameObject fillGO = new GameObject("Fill", typeof(RectTransform));
+        fillGO.transform.SetParent(baseGO.transform, false);
+        Image fillImg = fillGO.AddComponent<Image>();
+        fillImg.color = fillColor;
+        fillImg.raycastTarget = false;
+        RectTransform fillRect = fillGO.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = new Vector2(8f, 8f);
+        fillRect.offsetMax = new Vector2(-8f, -8f);
+
+        GameObject handleGO = new GameObject("Handle", typeof(RectTransform));
+        handleGO.transform.SetParent(baseGO.transform, false);
+        Image handleImg = handleGO.AddComponent<Image>();
+        handleImg.color = handleColor;
+        handleImg.raycastTarget = false;
+        RectTransform handleRect = handleGO.GetComponent<RectTransform>();
+        handleRect.anchorMin = new Vector2(0.5f, 0.5f);
+        handleRect.anchorMax = new Vector2(0.5f, 0.5f);
+        handleRect.pivot = new Vector2(0.5f, 0.5f);
+        handleRect.sizeDelta = new Vector2(72f, 72f);
+        handleRect.anchoredPosition = Vector2.zero;
+
+        VirtualJoystick joystick = baseGO.GetComponent<VirtualJoystick>();
+        if (joystick == null) joystick = baseGO.AddComponent<VirtualJoystick>();
+        joystick.handle = handleRect;
+        joystick.handleRange = 55f;
+
+        return baseGO;
     }
 
     Image CreateHealthBar(Transform parent)

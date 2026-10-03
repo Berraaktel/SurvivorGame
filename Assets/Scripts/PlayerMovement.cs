@@ -22,8 +22,20 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        moveInput.x = Input.GetAxisRaw("Horizontal");
-        moveInput.y = Input.GetAxisRaw("Vertical");
+        // The on-screen VirtualJoystick takes over the moment it's
+        // actually being held; otherwise this falls back to the keyboard
+        // axes, which is what makes testing in the Editor still work
+        // exactly as before touch support existed.
+        Vector2 joystickInput = VirtualJoystick.Instance != null ? VirtualJoystick.Instance.Direction : Vector2.zero;
+        if (joystickInput.sqrMagnitude > 0.0001f)
+        {
+            moveInput = joystickInput;
+        }
+        else
+        {
+            moveInput.x = Input.GetAxisRaw("Horizontal");
+            moveInput.y = Input.GetAxisRaw("Vertical");
+        }
         moveInput.Normalize();
 
         // Face the sprite toward whichever horizontal direction is being
