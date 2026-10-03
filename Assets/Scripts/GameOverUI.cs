@@ -16,7 +16,7 @@ public class GameOverUI : MonoBehaviour
         if (gameOverText != null) gameOverText.text = Localization.Get("game_over");
         if (restartButtonText != null) restartButtonText.text = Localization.Get("restart");
 
-        Button restartButton = GetComponentInChildren<Button>(true);
+        Button restartButton = panel != null ? panel.GetComponentInChildren<Button>(true) : GetComponentInChildren<Button>(true);
         if (restartButton != null)
         {
             restartButton.onClick.AddListener(Restart);

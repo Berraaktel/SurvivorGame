@@ -255,105 +255,110 @@ public class BuildGameUITool : EditorWindow
 
     GameObject CreateUpgradePanel(Transform parent, out Text header, out Text[] titles, out Text[] descs, out Button[] buttons)
     {
-        Transform existing = parent.Find("UpgradePanel");
-        if (existing != null)
-        {
-            Transform existingHeader = existing.Find("UpgradeHeaderText");
-            header = existingHeader != null ? existingHeader.GetComponent<Text>() : null;
-            MakeReadable(header, 56, 2f);
-
-            titles = new Text[3];
-            descs = new Text[3];
-            buttons = new Button[3];
-            for (int i = 0; i < 3; i++)
-            {
-                Transform opt = existing.Find("OptionButton_" + i);
-                if (opt != null)
-                {
-                    buttons[i] = opt.GetComponent<Button>();
-
-                    RectTransform optRect = opt.GetComponent<RectTransform>();
-                    if (optRect != null) optRect.sizeDelta = new Vector2(480f, 130f);
-
-                    Transform t = opt.Find("TitleText");
-                    Transform d = opt.Find("DescText");
-                    titles[i] = t != null ? t.GetComponent<Text>() : null;
-                    descs[i] = d != null ? d.GetComponent<Text>() : null;
-
-                    MakeReadable(titles[i], 32, 1.5f);
-                    if (titles[i] != null)
-                    {
-                        titles[i].alignment = TextAnchor.MiddleCenter;
-                        RectTransform tr = titles[i].GetComponent<RectTransform>();
-                        tr.anchorMin = new Vector2(0f, 0.52f);
-                        tr.anchorMax = new Vector2(1f, 1f);
-                        tr.offsetMin = new Vector2(12f, 0f);
-                        tr.offsetMax = new Vector2(-12f, -6f);
-                    }
-
-                    MakeReadable(descs[i], 22, 1f);
-                    if (descs[i] != null)
-                    {
-                        descs[i].fontStyle = FontStyle.Normal;
-                        descs[i].color = new Color(0.92f, 0.92f, 0.92f, 1f);
-                        descs[i].alignment = TextAnchor.MiddleCenter;
-                        RectTransform dr = descs[i].GetComponent<RectTransform>();
-                        dr.anchorMin = new Vector2(0f, 0f);
-                        dr.anchorMax = new Vector2(1f, 0.52f);
-                        dr.offsetMin = new Vector2(12f, 6f);
-                        dr.offsetMax = new Vector2(-12f, 0f);
-                    }
-                }
-            }
-            return existing.gameObject;
-        }
-
         Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        // Same desert/pixel palette as CreateMainMenuPanel/CreateShopPanel -
+        // this panel used to be a plain black overlay with flat gray cards,
+        // which clashed with the rest of the game's look.
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
+        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
+        Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
+        Color oliveColor = new Color(0.46f, 0.38f, 0.22f, 1f);
+
+        Transform existingOld = parent.Find("UpgradePanel");
+        if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
 
         GameObject panelGO = new GameObject("UpgradePanel", typeof(RectTransform));
         panelGO.transform.SetParent(parent, false);
+        panelGO.transform.SetAsLastSibling();
         Image panelImage = panelGO.AddComponent<Image>();
-        panelImage.color = new Color(0f, 0f, 0f, 0.85f);
+        panelImage.color = backdropColor;
         RectTransform panelRect = panelGO.GetComponent<RectTransform>();
         panelRect.anchorMin = Vector2.zero;
         panelRect.anchorMax = Vector2.one;
         panelRect.offsetMin = Vector2.zero;
         panelRect.offsetMax = Vector2.zero;
 
+        GameObject frameGO = new GameObject("UpgradeFrame", typeof(RectTransform));
+        frameGO.transform.SetParent(panelGO.transform, false);
+        Image frameBorder = frameGO.AddComponent<Image>();
+        frameBorder.color = borderColor;
+        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.sizeDelta = new Vector2(740f, 700f);
+        frameRect.anchoredPosition = Vector2.zero;
+
+        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
+        frameFillGO.transform.SetParent(frameGO.transform, false);
+        Image frameFill = frameFillGO.AddComponent<Image>();
+        frameFill.color = sandColor;
+        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
+        frameFillRect.anchorMin = Vector2.zero;
+        frameFillRect.anchorMax = Vector2.one;
+        frameFillRect.offsetMin = new Vector2(14f, 14f);
+        frameFillRect.offsetMax = new Vector2(-14f, -14f);
+
         GameObject headerGO = new GameObject("UpgradeHeaderText", typeof(RectTransform));
-        headerGO.transform.SetParent(panelGO.transform, false);
+        headerGO.transform.SetParent(frameGO.transform, false);
         Text headerText = headerGO.AddComponent<Text>();
-        headerText.text = "LEVEL UP!";
+        headerText.text = "SEVIYE ATLADIN!";
         headerText.font = builtinFont;
         headerText.alignment = TextAnchor.MiddleCenter;
         headerText.color = Color.white;
-        MakeReadable(headerText, 56, 2f);
+        MakeReadable(headerText, 52, 2.5f);
         RectTransform headerRect = headerGO.GetComponent<RectTransform>();
-        headerRect.anchorMin = new Vector2(0.5f, 0.78f);
-        headerRect.anchorMax = new Vector2(0.5f, 0.78f);
+        headerRect.anchorMin = new Vector2(0.5f, 0.90f);
+        headerRect.anchorMax = new Vector2(0.5f, 0.90f);
         headerRect.pivot = new Vector2(0.5f, 0.5f);
-        headerRect.sizeDelta = new Vector2(600f, 90f);
+        headerRect.sizeDelta = new Vector2(680f, 90f);
         headerRect.anchoredPosition = Vector2.zero;
+
+        // Desert flourishes flanking the header, same trick as the main
+        // menu/shop frames - cacti beside the title, rocks tucked into the
+        // bottom corners of the frame.
+        Sprite cactusSprite = LoadTileSprite(63);
+        CreateDecorSprite(frameGO.transform, "CactusLeft", new Vector2(0.5f, 0.90f), new Vector2(-280f, 0f), new Vector2(50f, 50f), cactusSprite);
+        CreateDecorSprite(frameGO.transform, "CactusRight", new Vector2(0.5f, 0.90f), new Vector2(280f, 0f), new Vector2(50f, 50f), cactusSprite);
+
+        Sprite rockSprite = LoadTileSprite(76);
+        CreateDecorSprite(frameGO.transform, "RockLeft", new Vector2(0f, 0f), new Vector2(36f, 36f), new Vector2(56f, 56f), rockSprite);
+        CreateDecorSprite(frameGO.transform, "RockRight", new Vector2(1f, 0f), new Vector2(-36f, 36f), new Vector2(56f, 56f), rockSprite);
 
         titles = new Text[3];
         descs = new Text[3];
         buttons = new Button[3];
 
-        float[] yPositions = { 0.58f, 0.42f, 0.26f };
+        // Chunky pixel-bordered cards (border rect + inset fill, same
+        // bevel as CreatePixelButton/CreateShopRow) instead of the old
+        // flat Color(0.2, 0.25, 0.35) rectangles.
+        float[] yPositions = { 0.64f, 0.40f, 0.16f };
 
         for (int i = 0; i < 3; i++)
         {
             GameObject btnGO = new GameObject("OptionButton_" + i, typeof(RectTransform));
-            btnGO.transform.SetParent(panelGO.transform, false);
-            Image btnImg = btnGO.AddComponent<Image>();
-            btnImg.color = new Color(0.2f, 0.25f, 0.35f, 1f);
+            btnGO.transform.SetParent(frameGO.transform, false);
+            Image btnBorder = btnGO.AddComponent<Image>();
+            btnBorder.color = borderColor;
             Button btn = btnGO.AddComponent<Button>();
             RectTransform btnRect = btnGO.GetComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(0.5f, yPositions[i]);
             btnRect.anchorMax = new Vector2(0.5f, yPositions[i]);
             btnRect.pivot = new Vector2(0.5f, 0.5f);
-            btnRect.sizeDelta = new Vector2(480f, 130f);
+            btnRect.sizeDelta = new Vector2(600f, 150f);
             btnRect.anchoredPosition = Vector2.zero;
+
+            GameObject fillGO = new GameObject("Fill", typeof(RectTransform));
+            fillGO.transform.SetParent(btnGO.transform, false);
+            Image fillImg = fillGO.AddComponent<Image>();
+            fillImg.color = oliveColor;
+            RectTransform fillRect = fillGO.GetComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.offsetMin = new Vector2(6f, 6f);
+            fillRect.offsetMax = new Vector2(-6f, -6f);
+            fillImg.raycastTarget = false;
 
             GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));
             titleGO.transform.SetParent(btnGO.transform, false);
@@ -366,8 +371,8 @@ public class BuildGameUITool : EditorWindow
             RectTransform titleRect = titleGO.GetComponent<RectTransform>();
             titleRect.anchorMin = new Vector2(0f, 0.52f);
             titleRect.anchorMax = new Vector2(1f, 1f);
-            titleRect.offsetMin = new Vector2(12f, 0f);
-            titleRect.offsetMax = new Vector2(-12f, -6f);
+            titleRect.offsetMin = new Vector2(16f, 0f);
+            titleRect.offsetMax = new Vector2(-16f, -6f);
 
             GameObject descGO = new GameObject("DescText", typeof(RectTransform));
             descGO.transform.SetParent(btnGO.transform, false);
@@ -375,14 +380,14 @@ public class BuildGameUITool : EditorWindow
             descText.text = "Aciklama";
             descText.font = builtinFont;
             descText.alignment = TextAnchor.MiddleCenter;
-            descText.color = new Color(0.92f, 0.92f, 0.92f, 1f);
+            descText.color = new Color(0.95f, 0.95f, 0.95f, 1f);
             MakeReadable(descText, 22, 1f);
             descText.fontStyle = FontStyle.Normal;
             RectTransform descRect = descGO.GetComponent<RectTransform>();
             descRect.anchorMin = new Vector2(0f, 0f);
             descRect.anchorMax = new Vector2(1f, 0.52f);
-            descRect.offsetMin = new Vector2(12f, 6f);
-            descRect.offsetMax = new Vector2(-12f, 0f);
+            descRect.offsetMin = new Vector2(16f, 6f);
+            descRect.offsetMax = new Vector2(-16f, 0f);
 
             titles[i] = titleText;
             descs[i] = descText;
@@ -983,94 +988,87 @@ public class BuildGameUITool : EditorWindow
 
     GameObject CreateGameOverPanel(Transform parent, out Text gameOverText, out Text restartButtonText, out Text bestTimeText, out Text goldEarnedText)
     {
-        Transform existing = parent.Find("GameOverPanel");
-        if (existing != null)
-        {
-            Transform existingText = existing.Find("GameOverText");
-            gameOverText = existingText != null ? existingText.GetComponent<Text>() : null;
-            MakeReadable(gameOverText, 76, 2.5f);
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            Transform existingBtn = existing.Find("RestartButton");
-            Transform existingBtnText = existingBtn != null ? existingBtn.Find("Text") : null;
-            restartButtonText = existingBtnText != null ? existingBtnText.GetComponent<Text>() : null;
-            MakeReadable(restartButtonText, 36, 1.5f);
+        // Same desert/pixel palette as the other panels - this screen used
+        // to be a plain black overlay with flat white/blue text, which
+        // clashed with the rest of the game's look.
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
+        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
+        Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
+        Color rustColor = new Color(0.76f, 0.38f, 0.16f, 1f);
 
-            Transform existingBestTime = existing.Find("BestTimeText");
-            Text bestTimeTxt = existingBestTime != null ? existingBestTime.GetComponent<Text>() : null;
-            if (bestTimeTxt == null)
-            {
-                bestTimeTxt = CreateBestTimeLabel(existing, new Vector2(0.5f, 0.48f));
-            }
-            MakeReadable(bestTimeTxt, 30, 1.5f);
-            bestTimeText = bestTimeTxt;
-
-            Transform existingGoldEarned = existing.Find("GoldEarnedText");
-            Text goldEarnedTxt = existingGoldEarned != null ? existingGoldEarned.GetComponent<Text>() : null;
-            if (goldEarnedTxt == null)
-            {
-                goldEarnedTxt = CreateGoldEarnedLabel(existing, new Vector2(0.5f, 0.56f));
-            }
-            MakeReadable(goldEarnedTxt, 30, 1.5f);
-            goldEarnedText = goldEarnedTxt;
-
-            return existing.gameObject;
-        }
+        Transform existingOld = parent.Find("GameOverPanel");
+        if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
 
         GameObject panelGO = new GameObject("GameOverPanel", typeof(RectTransform));
         panelGO.transform.SetParent(parent, false);
+        panelGO.transform.SetAsLastSibling();
         Image panelImage = panelGO.AddComponent<Image>();
-        panelImage.color = new Color(0f, 0f, 0f, 0.75f);
+        panelImage.color = backdropColor;
         RectTransform panelRect = panelGO.GetComponent<RectTransform>();
         panelRect.anchorMin = Vector2.zero;
         panelRect.anchorMax = Vector2.one;
         panelRect.offsetMin = Vector2.zero;
         panelRect.offsetMax = Vector2.zero;
 
-        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        GameObject frameGO = new GameObject("GameOverFrame", typeof(RectTransform));
+        frameGO.transform.SetParent(panelGO.transform, false);
+        Image frameBorder = frameGO.AddComponent<Image>();
+        frameBorder.color = borderColor;
+        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.sizeDelta = new Vector2(700f, 560f);
+        frameRect.anchoredPosition = Vector2.zero;
+
+        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
+        frameFillGO.transform.SetParent(frameGO.transform, false);
+        Image frameFill = frameFillGO.AddComponent<Image>();
+        frameFill.color = sandColor;
+        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
+        frameFillRect.anchorMin = Vector2.zero;
+        frameFillRect.anchorMax = Vector2.one;
+        frameFillRect.offsetMin = new Vector2(14f, 14f);
+        frameFillRect.offsetMax = new Vector2(-14f, -14f);
 
         GameObject textGO = new GameObject("GameOverText", typeof(RectTransform));
-        textGO.transform.SetParent(panelGO.transform, false);
+        textGO.transform.SetParent(frameGO.transform, false);
         Text text = textGO.AddComponent<Text>();
-        text.text = "GAME OVER";
+        text.text = "OYUN BITTI";
         text.font = builtinFont;
         text.alignment = TextAnchor.MiddleCenter;
         text.color = Color.white;
-        MakeReadable(text, 76, 2.5f);
+        MakeReadable(text, 56, 2.5f);
         RectTransform textRect = textGO.GetComponent<RectTransform>();
-        textRect.anchorMin = new Vector2(0.5f, 0.6f);
-        textRect.anchorMax = new Vector2(0.5f, 0.6f);
+        textRect.anchorMin = new Vector2(0.5f, 0.86f);
+        textRect.anchorMax = new Vector2(0.5f, 0.86f);
         textRect.pivot = new Vector2(0.5f, 0.5f);
-        textRect.sizeDelta = new Vector2(700f, 120f);
+        textRect.sizeDelta = new Vector2(640f, 110f);
         textRect.anchoredPosition = Vector2.zero;
 
-        GameObject buttonGO = new GameObject("RestartButton", typeof(RectTransform));
-        buttonGO.transform.SetParent(panelGO.transform, false);
-        Image buttonImage = buttonGO.AddComponent<Image>();
-        buttonImage.color = new Color(0.2f, 0.6f, 0.9f, 1f);
-        buttonGO.AddComponent<Button>();
-        RectTransform buttonRect = buttonGO.GetComponent<RectTransform>();
-        buttonRect.anchorMin = new Vector2(0.5f, 0.4f);
-        buttonRect.anchorMax = new Vector2(0.5f, 0.4f);
-        buttonRect.pivot = new Vector2(0.5f, 0.5f);
-        buttonRect.sizeDelta = new Vector2(250f, 80f);
-        buttonRect.anchoredPosition = Vector2.zero;
+        // Skulls flank the title instead of cacti - still desert set
+        // dressing, but a bone motif reads more "you died" than a plant
+        // would. Rocks still tuck into the bottom corners like every
+        // other frame.
+        Sprite skullSprite = LoadInterfaceSprite(55);
+        CreateDecorSprite(frameGO.transform, "SkullLeft", new Vector2(0.5f, 0.86f), new Vector2(-260f, 0f), new Vector2(48f, 48f), skullSprite);
+        CreateDecorSprite(frameGO.transform, "SkullRight", new Vector2(0.5f, 0.86f), new Vector2(260f, 0f), new Vector2(48f, 48f), skullSprite);
 
-        GameObject buttonTextGO = new GameObject("Text", typeof(RectTransform));
-        buttonTextGO.transform.SetParent(buttonGO.transform, false);
-        Text buttonText = buttonTextGO.AddComponent<Text>();
-        buttonText.text = "Restart";
-        buttonText.font = builtinFont;
-        buttonText.alignment = TextAnchor.MiddleCenter;
-        buttonText.color = Color.white;
-        MakeReadable(buttonText, 36, 1.5f);
-        RectTransform buttonTextRect = buttonTextGO.GetComponent<RectTransform>();
-        buttonTextRect.anchorMin = Vector2.zero;
-        buttonTextRect.anchorMax = Vector2.one;
-        buttonTextRect.offsetMin = Vector2.zero;
-        buttonTextRect.offsetMax = Vector2.zero;
+        Sprite rockSprite = LoadTileSprite(76);
+        CreateDecorSprite(frameGO.transform, "RockLeft", new Vector2(0f, 0f), new Vector2(34f, 34f), new Vector2(56f, 56f), rockSprite);
+        CreateDecorSprite(frameGO.transform, "RockRight", new Vector2(1f, 0f), new Vector2(-34f, 34f), new Vector2(56f, 56f), rockSprite);
 
-        Text bestTimeTxtFresh = CreateBestTimeLabel(panelGO.transform, new Vector2(0.5f, 0.48f));
-        Text goldEarnedTxtFresh = CreateGoldEarnedLabel(panelGO.transform, new Vector2(0.5f, 0.56f));
+        Sprite playIconSprite = LoadWeaponSprite(19);
+        Button restartBtn;
+        Text buttonText = CreatePixelButtonWithIcon(frameGO.transform, "RestartButton", "Yeniden Basla", 0.20f,
+            new Vector2(340f, 92f), borderColor, rustColor, builtinFont, 30, playIconSprite, Color.white, out restartBtn);
+
+        Text goldEarnedTxtFresh = CreateGoldEarnedLabel(frameGO.transform, new Vector2(0.5f, 0.60f));
+        MakeReadable(goldEarnedTxtFresh, 28, 1.5f);
+        Text bestTimeTxtFresh = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.50f));
+        MakeReadable(bestTimeTxtFresh, 28, 1.5f);
 
         panelGO.SetActive(false);
         gameOverText = text;
