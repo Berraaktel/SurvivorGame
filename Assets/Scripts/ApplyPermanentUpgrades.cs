@@ -15,10 +15,10 @@ public class ApplyPermanentUpgrades : MonoBehaviour
         if (ph != null) ph.maxHealth += PermanentUpgrades.GetExtraHealth();
 
         PlayerAttack pa = GetComponent<PlayerAttack>();
-        if (pa != null) pa.damage += PermanentUpgrades.GetExtraDamage();
+        if (pa != null) pa.damage += KnifeTiers.GetDamageBonus();
 
         OrbitWeapon ow = GetComponent<OrbitWeapon>();
-        if (ow != null) ow.damage += PermanentUpgrades.GetExtraDamage();
+        if (ow != null) ow.damage += KnifeTiers.GetDamageBonus();
 
         if (PermanentUpgrades.IsSkinUnlocked())
         {

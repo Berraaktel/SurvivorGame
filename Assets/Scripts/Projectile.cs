@@ -45,12 +45,23 @@ public class Projectile : MonoBehaviour
     private float spawnTime;
     private float distanceTraveled;
     private bool resolved;
+    private SpriteRenderer sr;
+
+    void Awake()
+    {
+        sr = GetComponent<SpriteRenderer>();
+    }
 
     void OnEnable()
     {
         spawnTime = Time.time;
         distanceTraveled = 0f;
         resolved = false;
+        // Re-applied on every throw (not just once) - tier can only change
+        // from the Main Menu Shop between runs, but this keeps the knife
+        // always showing whatever tier is actually owned without needing
+        // a separate "weapon changed" event.
+        if (sr != null) sr.color = KnifeTiers.GetTint();
         ApplyRotation();
     }
 

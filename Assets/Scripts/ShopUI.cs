@@ -12,11 +12,12 @@ public class ShopUI : MonoBehaviour
     public Text headerText;
     public Text goldBalanceText;
 
-    // Index 0 = health, 1 = damage, 2 = skin - same order everywhere.
+    // Index 0 = health, 1 = knife tier, 2 = skin - same order everywhere.
     public Text[] optionTitles;
     public Text[] optionDescriptions;
     public Text[] optionButtonLabels;
     public Button[] optionButtons;
+    public Image[] optionIcons;
     public Button backButton;
 
     void Awake()
@@ -26,7 +27,7 @@ public class ShopUI : MonoBehaviour
         if (optionButtons != null)
         {
             if (optionButtons.Length > 0 && optionButtons[0] != null) optionButtons[0].onClick.AddListener(BuyHealth);
-            if (optionButtons.Length > 1 && optionButtons[1] != null) optionButtons[1].onClick.AddListener(BuyDamage);
+            if (optionButtons.Length > 1 && optionButtons[1] != null) optionButtons[1].onClick.AddListener(BuyKnifeTier);
             if (optionButtons.Length > 2 && optionButtons[2] != null) optionButtons[2].onClick.AddListener(BuySkin);
         }
 
@@ -58,8 +59,13 @@ public class ShopUI : MonoBehaviour
         SetRowText(0, Localization.Get("shop_health_title"), Localization.Get("shop_health_desc"));
         SetLevelStatus(0, PermanentUpgrades.GetHealthLevel(), PermanentUpgrades.MaxHealthLevel, PermanentUpgrades.HealthLevelCost);
 
-        SetRowText(1, Localization.Get("shop_damage_title"), Localization.Get("shop_damage_desc"));
-        SetLevelStatus(1, PermanentUpgrades.GetDamageLevel(), PermanentUpgrades.MaxDamageLevel, PermanentUpgrades.DamageLevelCost);
+        bool knifeMaxed = KnifeTiers.IsMaxTier();
+        string knifeDesc = knifeMaxed
+            ? Localization.Get("shop_knife_maxed_desc")
+            : string.Format(Localization.Get("shop_knife_desc_format"), KnifeTiers.GetTierName(KnifeTiers.GetTier() + 1), KnifeTiers.GetNextDamageBonus());
+        SetRowText(1, KnifeTiers.GetCurrentTierName(), knifeDesc);
+        SetButtonState(1, knifeMaxed, knifeMaxed ? Localization.Get("maxed_label") : Localization.Get("buy_button") + "\n(" + KnifeTiers.GetNextTierPrice() + ")");
+        if (optionIcons != null && optionIcons.Length > 1 && optionIcons[1] != null) optionIcons[1].color = KnifeTiers.GetTint();
 
         SetRowText(2, Localization.Get("shop_skin_title"), Localization.Get("shop_skin_desc"));
         SetOwnedStatus(2, PermanentUpgrades.IsSkinUnlocked(), PermanentUpgrades.SkinCost);
@@ -103,9 +109,9 @@ public class ShopUI : MonoBehaviour
         Refresh();
     }
 
-    void BuyDamage()
+    void BuyKnifeTier()
     {
-        if (PermanentUpgrades.TryBuyDamageLevel() && AudioManager.Instance != null)
+        if (KnifeTiers.TryBuyNextTier() && AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayClick();
         }

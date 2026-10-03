@@ -41,8 +41,8 @@ public static class Localization
 
         { "shop_health_title", new Dictionary<string, string> { { "tr", "Kalici Can" }, { "en", "Permanent Health" } } },
         { "shop_health_desc", new Dictionary<string, string> { { "tr", "Her kosuda +2 baslangic cani" }, { "en", "+2 starting health, every run" } } },
-        { "shop_damage_title", new Dictionary<string, string> { { "tr", "Kalici Hasar" }, { "en", "Permanent Damage" } } },
-        { "shop_damage_desc", new Dictionary<string, string> { { "tr", "Her kosuda +1 baslangic hasari" }, { "en", "+1 starting damage, every run" } } },
+        { "shop_knife_desc_format", new Dictionary<string, string> { { "tr", "Sonraki: {0} (+{1} hasar)" }, { "en", "Next: {0} (+{1} damage)" } } },
+        { "shop_knife_maxed_desc", new Dictionary<string, string> { { "tr", "Maksimum seviye" }, { "en", "Maximum level" } } },
         { "shop_skin_title", new Dictionary<string, string> { { "tr", "Altin Kahraman" }, { "en", "Golden Hero" } } },
         { "shop_skin_desc", new Dictionary<string, string> { { "tr", "Karaktere altin renk temasi" }, { "en", "Gold color theme for your character" } } },
 

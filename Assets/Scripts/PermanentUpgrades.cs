@@ -7,29 +7,23 @@ using UnityEngine;
 public static class PermanentUpgrades
 {
     private const string HealthLevelKey = "upg_health_level";
-    private const string DamageLevelKey = "upg_damage_level";
     private const string SkinUnlockedKey = "upg_skin_unlocked";
 
     public const int MaxHealthLevel = 5;
-    public const int MaxDamageLevel = 5;
     public const int HealthLevelCost = 200;
-    public const int DamageLevelCost = 300;
     public const int SkinCost = 500;
 
     // How much each level actually adds to the player's stats - kept in
     // step with the in-run level-up upgrades (PlayerUpgrades) so a
     // permanent level feels like one extra free pick, not a different unit.
+    // (Damage used to live here too as a flat level - it's now the
+    // KnifeTiers tier ladder instead, so the Shop purchase also reskins
+    // the knife, not just a number.)
     public const int HealthPerLevel = 2;
-    public const int DamagePerLevel = 1;
 
     public static int GetHealthLevel()
     {
         return PlayerPrefs.GetInt(HealthLevelKey, 0);
-    }
-
-    public static int GetDamageLevel()
-    {
-        return PlayerPrefs.GetInt(DamageLevelKey, 0);
     }
 
     public static bool IsSkinUnlocked()
@@ -42,11 +36,6 @@ public static class PermanentUpgrades
         return GetHealthLevel() * HealthPerLevel;
     }
 
-    public static int GetExtraDamage()
-    {
-        return GetDamageLevel() * DamagePerLevel;
-    }
-
     // Each returns true if the purchase went through (enough Gold, not
     // already maxed/unlocked); false otherwise, with nothing spent.
     public static bool TryBuyHealthLevel()
@@ -56,17 +45,6 @@ public static class PermanentUpgrades
         if (!GoldManager.TrySpend(HealthLevelCost)) return false;
 
         PlayerPrefs.SetInt(HealthLevelKey, level + 1);
-        PlayerPrefs.Save();
-        return true;
-    }
-
-    public static bool TryBuyDamageLevel()
-    {
-        int level = GetDamageLevel();
-        if (level >= MaxDamageLevel) return false;
-        if (!GoldManager.TrySpend(DamageLevelCost)) return false;
-
-        PlayerPrefs.SetInt(DamageLevelKey, level + 1);
         PlayerPrefs.Save();
         return true;
     }

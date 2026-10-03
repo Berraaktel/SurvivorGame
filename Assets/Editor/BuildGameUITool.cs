@@ -1801,9 +1801,10 @@ public class BuildGameUITool : EditorWindow
         Text header, goldBalance, backText;
         Text[] titles, descs, buttonLabels;
         Button[] buttons;
+        Image[] icons;
         Button backBtn;
         GameObject panel = CreateShopPanel(canvas.transform, out header, out goldBalance,
-            out titles, out descs, out buttonLabels, out buttons, out backBtn, out backText);
+            out titles, out descs, out buttonLabels, out buttons, out icons, out backBtn, out backText);
 
         ShopUI shop = canvas.GetComponent<ShopUI>();
         if (shop == null) shop = canvas.gameObject.AddComponent<ShopUI>();
@@ -1814,6 +1815,7 @@ public class BuildGameUITool : EditorWindow
         shop.optionDescriptions = descs;
         shop.optionButtonLabels = buttonLabels;
         shop.optionButtons = buttons;
+        shop.optionIcons = icons;
         shop.backButton = backBtn;
 
         EditorUtility.SetDirty(canvas.gameObject);
@@ -1823,7 +1825,7 @@ public class BuildGameUITool : EditorWindow
 
     GameObject CreateShopPanel(Transform parent, out Text header, out Text goldBalance,
         out Text[] titles, out Text[] descs, out Text[] buttonLabels, out Button[] buttons,
-        out Button backButton, out Text backText)
+        out Image[] icons, out Button backButton, out Text backText)
     {
         Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -1930,6 +1932,7 @@ public class BuildGameUITool : EditorWindow
         descs = new Text[3];
         buttonLabels = new Text[3];
         buttons = new Button[3];
+        icons = new Image[3];
 
         // Each option gets an icon that is the real thing it affects, not
         // a generic placeholder: the hand-drawn heart for health, the
@@ -1945,13 +1948,15 @@ public class BuildGameUITool : EditorWindow
         {
             Text rowTitle, rowDesc, rowBtnLabel;
             Button rowBtn;
+            Image rowIcon;
             CreateShopRow(frameGO.transform, i, rowY[i], rowColor, buyColor, builtinFont,
                 rowIcons[i], rowIconTints[i], borderColor,
-                out rowTitle, out rowDesc, out rowBtnLabel, out rowBtn);
+                out rowTitle, out rowDesc, out rowBtnLabel, out rowBtn, out rowIcon);
             titles[i] = rowTitle;
             descs[i] = rowDesc;
             buttonLabels[i] = rowBtnLabel;
             buttons[i] = rowBtn;
+            icons[i] = rowIcon;
         }
 
         Button backBtn;
@@ -1975,7 +1980,7 @@ public class BuildGameUITool : EditorWindow
     // the menus, just laid out horizontally instead of stacked.
     void CreateShopRow(Transform parent, int index, float yAnchor, Color rowColor, Color buyColor, Font font,
         Sprite iconSprite, Color iconTint, Color borderColor,
-        out Text title, out Text desc, out Text buttonLabel, out Button button)
+        out Text title, out Text desc, out Text buttonLabel, out Button button, out Image icon)
     {
         // Border+fill bevel - same 2-layer trick as the buttons and the
         // menu frame - instead of one flat-color rectangle, so the row
@@ -2004,7 +2009,9 @@ public class BuildGameUITool : EditorWindow
 
         // Item-slot icon on the left - the real sprite for what this
         // upgrade affects, not a generic placeholder (see the callers).
-        CreateIconSlot(rowFillGO.transform, "IconSlot", new Vector2(0f, 0.5f), new Vector2(76f, 0f),
+        // Returned so ShopUI can re-tint it at runtime (the knife row
+        // recolors itself to match whichever tier is actually owned).
+        icon = CreateIconSlot(rowFillGO.transform, "IconSlot", new Vector2(0f, 0.5f), new Vector2(76f, 0f),
             new Vector2(120f, 120f), iconSprite, iconTint, borderColor, rowColor);
 
         GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));

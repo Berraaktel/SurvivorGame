@@ -21,6 +21,7 @@ public class EnemyHealth : MonoBehaviour
     public int CurrentHealth { get { return currentHealth; } }
 
     private int currentHealth;
+    private int baseMaxHealth;
     private SpriteRenderer sr;
     private Color originalColor;
     private Coroutine flashRoutine;
@@ -35,10 +36,18 @@ public class EnemyHealth : MonoBehaviour
         Transform visual = transform.Find("SpriteVisual");
         sr = visual != null ? visual.GetComponent<SpriteRenderer>() : GetComponent<SpriteRenderer>();
         originalColor = sr.color;
+
+        // Snapshot the prefab's own baseline once - this object gets
+        // pooled and reactivated many times over one run as elapsed time
+        // (and so DifficultyManager's multiplier) keeps climbing, so
+        // maxHealth itself must be re-derived from a fixed base each time
+        // rather than scaled relative to its own last scaled value.
+        baseMaxHealth = maxHealth;
     }
 
     void OnEnable()
     {
+        maxHealth = Mathf.Max(1, Mathf.RoundToInt(baseMaxHealth * DifficultyManager.GetMultiplier()));
         currentHealth = maxHealth;
 
         // A pooled enemy can be reactivated mid-flash: SetActive(false) kills

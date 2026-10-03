@@ -20,10 +20,21 @@ public class EnemyAI : MonoBehaviour
     // size or how many enemies are overlapping.
     public float contactRange = 0.3f;
     private float damageTimer;
+    private int baseContactDamage;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        // See EnemyHealth.Awake for why this is snapshotted once instead
+        // of scaled in place - this object is pooled and reactivated many
+        // times across a run as the difficulty multiplier keeps rising.
+        baseContactDamage = contactDamage;
+    }
+
+    void OnEnable()
+    {
+        contactDamage = Mathf.Max(1, Mathf.RoundToInt(baseContactDamage * DifficultyManager.GetMultiplier()));
+        damageTimer = 0f;
     }
 
     void Start()
