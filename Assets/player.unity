@@ -2736,7 +2736,8 @@ MonoBehaviour:
   - {fileID: 7826719716753316515, guid: be629fa5e9a904c5c8ea74f6ee2ead6d, type: 3}
   - {fileID: 2955403765639068919, guid: 5040439c7c35d4dd39e11b521184ad03, type: 3}
   - {fileID: 2804040364194540675, guid: 8eb65b72bd7e544d89556552a185bd19, type: 3}
-  unlockLevels: 0100000002000000030000000f270000
+  - {fileID: 2601833301939971741, guid: bcbb770f89dba4b1590e69dc413bfb88, type: 3}
+  unlockLevels: 0100000002000000030000000f27000003000000
   initialSizePerType: 8
 --- !u!114 &502303339
 MonoBehaviour:
@@ -16489,6 +16490,52 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1135663662
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1135663664}
+  - component: {fileID: 1135663663}
+  m_Layer: 0
+  m_Name: EnemyProjectilePool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1135663663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1135663662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71d4738b080e433eae9d99041ef18d46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyProjectilePool
+  projectilePrefab: {fileID: 6015311879515560664, guid: 6832e52a518fb4bb5b48394c53834d09, type: 3}
+  initialSize: 12
+--- !u!4 &1135663664
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1135663662}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1168144982
 GameObject:
   m_ObjectHideFlags: 0
@@ -22871,3 +22918,4 @@ SceneRoots:
   - {fileID: 1950865810}
   - {fileID: 188670177}
   - {fileID: 239869245}
+  - {fileID: 1135663664}

@@ -105,6 +105,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton 4. dusman tipini (Ranged) ekler - mesafeli durup oyuncuya mermi atar, yaklasinca geri cekilir. Once Build Enemy Variety calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Ranged Enemy"))
+        {
+            BuildRangedEnemy();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton, Boss hayattayken ekranin ustunde canini gosteren bir bar kurar. Once Build Enemy Variety calismis olmali.", MessageType.Info);
         if (GUILayout.Button("Build Boss Health Bar"))
         {
@@ -452,6 +459,167 @@ public class BuildGameUITool : EditorWindow
 
         Debug.Log("Dusman cesitliligi kuruldu: Grunt (Lv1+), Scout (Lv2+), Brute (Lv3+), Boss (periyodik). Toplam tip: " + pool.enemyPrefabs.Length);
         SaveScene();
+    }
+
+    void BuildRangedEnemy()
+    {
+        GameObject basePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy.prefab");
+        if (basePrefab == null)
+        {
+            Debug.LogWarning("Assets/Prefabs/Enemy.prefab bulunamadi.");
+            return;
+        }
+
+        GameObject projectilePrefab = CreateOrLoadEnemyProjectilePrefab();
+        if (projectilePrefab == null)
+        {
+            Debug.LogWarning("Enemy projectile prefab olusturulamadi.");
+            return;
+        }
+        EnsureEnemyProjectilePool(projectilePrefab);
+
+        // Glass cannon: low health and no real contact damage (it tries
+        // hard not to be in contact range at all), but it chips away from
+        // a distance instead - a genuinely different fight than Scout or
+        // Brute, not just another stat spread on the same melee behavior.
+        GameObject ranged = CreateRangedEnemyVariant(basePrefab, "Ranged", 3, 1.8f, 4, 1, 2, 1f, new Color(0.55f, 0.85f, 0.25f));
+
+        GameObject spawnerObj = GameObject.Find("Spawner");
+        if (spawnerObj == null)
+        {
+            Debug.LogWarning("Spawner objesi bulunamadi.");
+            return;
+        }
+
+        EnemyPool pool = spawnerObj.GetComponent<EnemyPool>();
+        if (pool == null)
+        {
+            Debug.LogWarning("EnemyPool komponenti bulunamadi. Once Build Enemy Variety calistir.");
+            return;
+        }
+
+        List<GameObject> prefabList = new List<GameObject>(pool.enemyPrefabs ?? new GameObject[0]);
+        List<int> unlockList = new List<int>(pool.unlockLevels ?? new int[0]);
+
+        // Idempotent: re-running this button (e.g. after re-running Build
+        // Enemy Variety, which rebuilds the array from scratch) replaces
+        // any existing Ranged entry instead of appending a duplicate.
+        int existingIndex = prefabList.IndexOf(ranged);
+        if (existingIndex >= 0)
+        {
+            unlockList[existingIndex] = 3;
+        }
+        else
+        {
+            prefabList.Add(ranged);
+            unlockList.Add(3);
+        }
+
+        pool.enemyPrefabs = prefabList.ToArray();
+        pool.unlockLevels = unlockList.ToArray();
+        EditorUtility.SetDirty(pool);
+
+        AssetDatabase.SaveAssets();
+
+        Debug.Log("Menzilli dusman (Ranged) eklendi: Lv3+'tan itibaren havuzda. Toplam tip: " + pool.enemyPrefabs.Length);
+        SaveScene();
+    }
+
+    GameObject CreateRangedEnemyVariant(GameObject basePrefab, string variantName, int spriteIndex, float moveSpeed, int maxHealth, int contactDamage, int xpValue, float scale = 1f, Color? tintColor = null)
+    {
+        string path = "Assets/Prefabs/Enemy_" + variantName + ".prefab";
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+
+        GameObject instance = existing != null
+            ? (GameObject)PrefabUtility.InstantiatePrefab(existing)
+            : (GameObject)PrefabUtility.InstantiatePrefab(basePrefab);
+
+        Transform visualT = instance.transform.Find("SpriteVisual");
+        SpriteRenderer sr = visualT != null ? visualT.GetComponent<SpriteRenderer>() : instance.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            Sprite sprite = LoadEnemySprite(spriteIndex);
+            if (sprite != null)
+            {
+                sr.sprite = sprite;
+                SpriteAnimator anim = visualT != null ? visualT.GetComponent<SpriteAnimator>() : null;
+                if (anim != null) anim.idleFrame = sprite;
+            }
+            if (tintColor.HasValue)
+            {
+                sr.color = tintColor.Value;
+            }
+        }
+
+        // This variant behaves nothing like the melee chasers - swap out
+        // EnemyAI for EnemyRangedAI entirely rather than leaving a disabled
+        // EnemyAI sitting on the prefab, which would just be dead weight
+        // that could confuse the next person reading this prefab's
+        // components.
+        EnemyAI oldAi = instance.GetComponent<EnemyAI>();
+        if (oldAi != null) Object.DestroyImmediate(oldAi);
+
+        EnemyRangedAI ai = instance.GetComponent<EnemyRangedAI>();
+        if (ai == null) ai = instance.AddComponent<EnemyRangedAI>();
+        ai.moveSpeed = moveSpeed;
+        ai.projectileDamage = contactDamage;
+
+        EnemyHealth hp = instance.GetComponent<EnemyHealth>();
+        if (hp != null)
+        {
+            hp.maxHealth = maxHealth;
+            hp.xpValue = xpValue;
+            hp.isBoss = false;
+            hp.goldValue = xpValue * 3;
+        }
+
+        if (!Mathf.Approximately(scale, 1f))
+        {
+            instance.transform.localScale = Vector3.one * scale;
+        }
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(instance, path);
+        Object.DestroyImmediate(instance);
+        return prefab;
+    }
+
+    GameObject CreateOrLoadEnemyProjectilePrefab()
+    {
+        string prefabPath = "Assets/Prefabs/EnemyProjectile.prefab";
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (existing != null) return existing;
+
+        // A small plain pellet (not a gun/blade sprite) reads better as a
+        // creature's spat projectile than any of the weapon icons do -
+        // tinted toxic green to match the Ranged enemy's own tint, so the
+        // shot clearly reads as "that thing's attack" at a glance.
+        Sprite pelletSprite = LoadWeaponSprite(23);
+
+        GameObject temp = new GameObject("EnemyProjectile");
+        SpriteRenderer sr = temp.AddComponent<SpriteRenderer>();
+        sr.sprite = pelletSprite;
+        sr.color = new Color(0.55f, 0.85f, 0.25f);
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = 6;
+
+        temp.AddComponent<EnemyProjectile>();
+        temp.transform.localScale = Vector3.one * 1.4f;
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, prefabPath);
+        Object.DestroyImmediate(temp);
+        return prefab;
+    }
+
+    void EnsureEnemyProjectilePool(GameObject projectilePrefab)
+    {
+        EnemyProjectilePool pool = Object.FindFirstObjectByType<EnemyProjectilePool>();
+        if (pool == null)
+        {
+            GameObject poolGO = new GameObject("EnemyProjectilePool");
+            pool = poolGO.AddComponent<EnemyProjectilePool>();
+        }
+        pool.projectilePrefab = projectilePrefab;
+        EditorUtility.SetDirty(pool);
     }
 
     void BuildBossHealthBar()
