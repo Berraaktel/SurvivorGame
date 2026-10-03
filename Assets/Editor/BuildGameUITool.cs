@@ -1608,6 +1608,104 @@ public class BuildGameUITool : EditorWindow
         return txt;
     }
 
+    // Procedurally-drawn 16x14 pixel heart (outline + fill + a small
+    // highlight), baked once to Assets/Sprites/Generated/HeartIcon.png -
+    // none of the bundled tile sets have a heart, and every other Shop
+    // icon reuses real gameplay sprites, so this is the one piece that
+    // has to be hand-made to keep the same "dark border, flat pixel
+    // fill" look as the rest of the UI instead of looking like a
+    // placeholder.
+    Sprite LoadHeartIcon()
+    {
+        string pngPath = "Assets/Sprites/Generated/HeartIcon.png";
+        AssetDatabase.ImportAsset(pngPath, ImportAssetOptions.Default);
+
+        TextureImporter importer = AssetImporter.GetAtPath(pngPath) as TextureImporter;
+        if (importer != null && importer.textureType != TextureImporterType.Sprite)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.filterMode = FilterMode.Point;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = false;
+            importer.spritePixelsPerUnit = 100f;
+            importer.SaveAndReimport();
+        }
+
+        foreach (Object obj in AssetDatabase.LoadAllAssetsAtPath(pngPath))
+        {
+            Sprite s = obj as Sprite;
+            if (s != null) return s;
+        }
+        return null;
+    }
+
+    // Small bordered "item slot" - same border+fill trick as the buttons
+    // and the menu frame, just non-interactive - with a sprite centered
+    // inside it. Used for the Shop's per-upgrade icons so each option
+    // reads as an inventory slot instead of a bare floating sprite.
+    Image CreateIconSlot(Transform parent, string name, Vector2 anchor, Vector2 anchoredPos, Vector2 size,
+        Sprite sprite, Color iconTint, Color borderColor, Color slotColor)
+    {
+        GameObject slotGO = new GameObject(name, typeof(RectTransform));
+        slotGO.transform.SetParent(parent, false);
+        Image slotBorder = slotGO.AddComponent<Image>();
+        slotBorder.color = borderColor;
+        RectTransform slotRect = slotGO.GetComponent<RectTransform>();
+        slotRect.anchorMin = anchor;
+        slotRect.anchorMax = anchor;
+        slotRect.pivot = new Vector2(0.5f, 0.5f);
+        slotRect.sizeDelta = size;
+        slotRect.anchoredPosition = anchoredPos;
+
+        GameObject fillGO = new GameObject("Fill", typeof(RectTransform));
+        fillGO.transform.SetParent(slotGO.transform, false);
+        Image fillImg = fillGO.AddComponent<Image>();
+        fillImg.color = slotColor;
+        fillImg.raycastTarget = false;
+        RectTransform fillRect = fillGO.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = new Vector2(5f, 5f);
+        fillRect.offsetMax = new Vector2(-5f, -5f);
+
+        GameObject iconGO = new GameObject("Icon", typeof(RectTransform));
+        iconGO.transform.SetParent(slotGO.transform, false);
+        Image iconImg = iconGO.AddComponent<Image>();
+        iconImg.sprite = sprite;
+        iconImg.color = iconTint;
+        iconImg.preserveAspect = true;
+        iconImg.raycastTarget = false;
+        RectTransform iconRect = iconGO.GetComponent<RectTransform>();
+        iconRect.anchorMin = Vector2.zero;
+        iconRect.anchorMax = Vector2.one;
+        iconRect.offsetMin = new Vector2(14f, 14f);
+        iconRect.offsetMax = new Vector2(-14f, -14f);
+
+        return iconImg;
+    }
+
+    // Bare decorative sprite (no slot/border) - for the little desert
+    // flourishes on the Shop panel (cacti by the header, rocks in the
+    // bottom corners) that are just set dressing, not item icons.
+    Image CreateDecorSprite(Transform parent, string name, Vector2 anchor, Vector2 anchoredPos, Vector2 size, Sprite sprite)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        Image img = go.AddComponent<Image>();
+        img.sprite = sprite;
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        RectTransform rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = size;
+        rect.anchoredPosition = anchoredPos;
+        return img;
+    }
+
     void BuildShop()
     {
         EnsureEventSystem();
@@ -1699,25 +1797,61 @@ public class BuildGameUITool : EditorWindow
         headerRect.sizeDelta = new Vector2(700f, 90f);
         headerRect.anchoredPosition = Vector2.zero;
 
+        // Desert flourishes: a cactus on each side of the title, rocks
+        // tucked into the bottom corners of the frame border - cheap,
+        // reuses the ground tileset's own decoration sprites, and turns
+        // the panel from "a text box" into something that reads as part
+        // of the same desert the run takes place in.
+        Sprite cactusSprite = LoadTileSprite(63);
+        CreateDecorSprite(frameGO.transform, "CactusLeft", new Vector2(0.5f, 0.93f), new Vector2(-300f, 0f), new Vector2(56f, 56f), cactusSprite);
+        CreateDecorSprite(frameGO.transform, "CactusRight", new Vector2(0.5f, 0.93f), new Vector2(300f, 0f), new Vector2(56f, 56f), cactusSprite);
+
+        Sprite rockSprite = LoadTileSprite(76);
+        CreateDecorSprite(frameGO.transform, "RockLeft", new Vector2(0f, 0f), new Vector2(38f, 38f), new Vector2(60f, 60f), rockSprite);
+        CreateDecorSprite(frameGO.transform, "RockRight", new Vector2(1f, 0f), new Vector2(-38f, 38f), new Vector2(60f, 60f), rockSprite);
+
+        GameObject goldRowGO = new GameObject("GoldBalanceRow", typeof(RectTransform));
+        goldRowGO.transform.SetParent(frameGO.transform, false);
+        RectTransform goldRowRect = goldRowGO.GetComponent<RectTransform>();
+        goldRowRect.anchorMin = new Vector2(0.5f, 0.84f);
+        goldRowRect.anchorMax = new Vector2(0.5f, 0.84f);
+        goldRowRect.pivot = new Vector2(0.5f, 0.5f);
+        goldRowRect.sizeDelta = new Vector2(320f, 64f);
+        goldRowRect.anchoredPosition = Vector2.zero;
+
+        // Same tile + gold tint GoldOrb uses in-run, so the icon next to
+        // the balance is literally the same pickup the player just saw.
+        Sprite goldIconSprite = LoadTileSprite(39);
+        Image goldIcon = CreateDecorSprite(goldRowGO.transform, "GoldIcon", new Vector2(0f, 0.5f), new Vector2(26f, 0f), new Vector2(52f, 52f), goldIconSprite);
+        goldIcon.color = new Color(1f, 0.84f, 0f);
+
         GameObject goldGO = new GameObject("GoldBalanceText", typeof(RectTransform));
-        goldGO.transform.SetParent(frameGO.transform, false);
+        goldGO.transform.SetParent(goldRowGO.transform, false);
         Text goldTxt = goldGO.AddComponent<Text>();
         goldTxt.text = "";
         goldTxt.font = builtinFont;
-        goldTxt.alignment = TextAnchor.MiddleCenter;
+        goldTxt.alignment = TextAnchor.MiddleLeft;
         goldTxt.color = new Color(1f, 0.84f, 0f);
         MakeReadable(goldTxt, 30, 1.5f);
         RectTransform goldRect = goldGO.GetComponent<RectTransform>();
-        goldRect.anchorMin = new Vector2(0.5f, 0.84f);
-        goldRect.anchorMax = new Vector2(0.5f, 0.84f);
-        goldRect.pivot = new Vector2(0.5f, 0.5f);
-        goldRect.sizeDelta = new Vector2(500f, 70f);
-        goldRect.anchoredPosition = Vector2.zero;
+        goldRect.anchorMin = new Vector2(0f, 0f);
+        goldRect.anchorMax = new Vector2(1f, 1f);
+        goldRect.offsetMin = new Vector2(58f, 0f);
+        goldRect.offsetMax = Vector2.zero;
 
         titles = new Text[3];
         descs = new Text[3];
         buttonLabels = new Text[3];
         buttons = new Button[3];
+
+        // Each option gets an icon that is the real thing it affects, not
+        // a generic placeholder: the hand-drawn heart for health, the
+        // player's own thrown dagger for damage, and the player's own
+        // sprite (gold-tinted, same as the unlock itself applies) for
+        // the skin.
+        Sprite[] rowIcons = { LoadHeartIcon(), LoadWeaponSprite(8), LoadPlayerSprite(0) };
+        Color goldTint = new Color(1f, 0.84f, 0f);
+        Color[] rowIconTints = { Color.white, Color.white, goldTint };
 
         float[] rowY = { 0.66f, 0.44f, 0.22f };
         for (int i = 0; i < 3; i++)
@@ -1725,6 +1859,7 @@ public class BuildGameUITool : EditorWindow
             Text rowTitle, rowDesc, rowBtnLabel;
             Button rowBtn;
             CreateShopRow(frameGO.transform, i, rowY[i], rowColor, buyColor, builtinFont,
+                rowIcons[i], rowIconTints[i], borderColor,
                 out rowTitle, out rowDesc, out rowBtnLabel, out rowBtn);
             titles[i] = rowTitle;
             descs[i] = rowDesc;
@@ -1752,18 +1887,38 @@ public class BuildGameUITool : EditorWindow
     // and a Buy button on the right - same desert palette as the rest of
     // the menus, just laid out horizontally instead of stacked.
     void CreateShopRow(Transform parent, int index, float yAnchor, Color rowColor, Color buyColor, Font font,
+        Sprite iconSprite, Color iconTint, Color borderColor,
         out Text title, out Text desc, out Text buttonLabel, out Button button)
     {
+        // Border+fill bevel - same 2-layer trick as the buttons and the
+        // menu frame - instead of one flat-color rectangle, so the row
+        // reads as a chunky pixel-art card rather than a plain div.
         GameObject rowGO = new GameObject("ShopRow_" + index, typeof(RectTransform));
         rowGO.transform.SetParent(parent, false);
-        Image rowImg = rowGO.AddComponent<Image>();
-        rowImg.color = rowColor;
+        Image rowBorder = rowGO.AddComponent<Image>();
+        rowBorder.color = borderColor;
         RectTransform rowRect = rowGO.GetComponent<RectTransform>();
         rowRect.anchorMin = new Vector2(0.5f, yAnchor);
         rowRect.anchorMax = new Vector2(0.5f, yAnchor);
         rowRect.pivot = new Vector2(0.5f, 0.5f);
         rowRect.sizeDelta = new Vector2(760f, 150f);
         rowRect.anchoredPosition = Vector2.zero;
+
+        GameObject rowFillGO = new GameObject("Fill", typeof(RectTransform));
+        rowFillGO.transform.SetParent(rowGO.transform, false);
+        Image rowFill = rowFillGO.AddComponent<Image>();
+        rowFill.color = rowColor;
+        rowFill.raycastTarget = false;
+        RectTransform rowFillRect = rowFillGO.GetComponent<RectTransform>();
+        rowFillRect.anchorMin = Vector2.zero;
+        rowFillRect.anchorMax = Vector2.one;
+        rowFillRect.offsetMin = new Vector2(5f, 5f);
+        rowFillRect.offsetMax = new Vector2(-5f, -5f);
+
+        // Item-slot icon on the left - the real sprite for what this
+        // upgrade affects, not a generic placeholder (see the callers).
+        CreateIconSlot(rowFillGO.transform, "IconSlot", new Vector2(0f, 0.5f), new Vector2(76f, 0f),
+            new Vector2(120f, 120f), iconSprite, iconTint, borderColor, rowColor);
 
         GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));
         titleGO.transform.SetParent(rowGO.transform, false);
@@ -1774,9 +1929,9 @@ public class BuildGameUITool : EditorWindow
         titleTxt.color = Color.white;
         MakeReadable(titleTxt, 30, 1.5f);
         RectTransform titleRect = titleGO.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0f, 0.55f);
+        titleRect.anchorMin = new Vector2(0.21f, 0.55f);
         titleRect.anchorMax = new Vector2(0.62f, 1f);
-        titleRect.offsetMin = new Vector2(16f, 0f);
+        titleRect.offsetMin = new Vector2(8f, 0f);
         titleRect.offsetMax = new Vector2(-8f, -8f);
 
         GameObject descGO = new GameObject("DescText", typeof(RectTransform));
@@ -1789,9 +1944,9 @@ public class BuildGameUITool : EditorWindow
         MakeReadable(descTxt, 20, 1f);
         descTxt.fontStyle = FontStyle.Normal;
         RectTransform descRect = descGO.GetComponent<RectTransform>();
-        descRect.anchorMin = new Vector2(0f, 0f);
+        descRect.anchorMin = new Vector2(0.21f, 0f);
         descRect.anchorMax = new Vector2(0.62f, 0.55f);
-        descRect.offsetMin = new Vector2(16f, 8f);
+        descRect.offsetMin = new Vector2(8f, 8f);
         descRect.offsetMax = new Vector2(-8f, 0f);
 
         GameObject btnGO = new GameObject("BuyButton", typeof(RectTransform));
