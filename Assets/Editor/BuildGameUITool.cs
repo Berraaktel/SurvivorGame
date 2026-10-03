@@ -1206,6 +1206,17 @@ public class BuildGameUITool : EditorWindow
         return null;
     }
 
+    Sprite LoadInterfaceSprite(int index)
+    {
+        string pngPath = string.Format("Assets/Sprites/PNG/Interface/Tiles/tile_{0:D4}.png", index);
+        foreach (Object obj in AssetDatabase.LoadAllAssetsAtPath(pngPath))
+        {
+            Sprite s = obj as Sprite;
+            if (s != null) return s;
+        }
+        return null;
+    }
+
     void EnsureProjectilePool(GameObject projectilePrefab)
     {
         ProjectilePool pool = Object.FindFirstObjectByType<ProjectilePool>();
@@ -1535,17 +1546,30 @@ public class BuildGameUITool : EditorWindow
         titleRect.sizeDelta = new Vector2(620f, 120f);
         titleRect.anchoredPosition = Vector2.zero;
 
+        Sprite cactusSprite = LoadTileSprite(63);
+        CreateDecorSprite(frameGO.transform, "CactusLeft", new Vector2(0.5f, 0.92f), new Vector2(-250f, 0f), new Vector2(52f, 52f), cactusSprite);
+        CreateDecorSprite(frameGO.transform, "CactusRight", new Vector2(0.5f, 0.92f), new Vector2(250f, 0f), new Vector2(52f, 52f), cactusSprite);
+
+        Sprite rockSprite = LoadTileSprite(76);
+        CreateDecorSprite(frameGO.transform, "RockLeft", new Vector2(0f, 0f), new Vector2(34f, 34f), new Vector2(54f, 54f), rockSprite);
+        CreateDecorSprite(frameGO.transform, "RockRight", new Vector2(1f, 0f), new Vector2(-34f, 34f), new Vector2(54f, 54f), rockSprite);
+
+        Sprite playIconSprite = LoadWeaponSprite(19);
+        Sprite shopIconSprite = LoadTileSprite(39);
+        Sprite quitIconSprite = LoadInterfaceSprite(55);
+        Color goldTint = new Color(1f, 0.84f, 0f);
+
         Button playBtn;
-        Text playTxt = CreatePixelButton(frameGO.transform, "PlayButton", "OYNA", 0.56f,
-            new Vector2(340f, 92f), borderColor, rustColor, builtinFont, 36, out playBtn);
+        Text playTxt = CreatePixelButtonWithIcon(frameGO.transform, "PlayButton", "OYNA", 0.56f,
+            new Vector2(340f, 92f), borderColor, rustColor, builtinFont, 36, playIconSprite, Color.white, out playBtn);
 
         Button shopBtn;
-        Text shopTxt = CreatePixelButton(frameGO.transform, "ShopButton", "MAGAZA", 0.36f,
-            new Vector2(340f, 80f), borderColor, slateMenuColor, builtinFont, 30, out shopBtn);
+        Text shopTxt = CreatePixelButtonWithIcon(frameGO.transform, "ShopButton", "MAGAZA", 0.36f,
+            new Vector2(340f, 80f), borderColor, slateMenuColor, builtinFont, 30, shopIconSprite, goldTint, out shopBtn);
 
         Button quitBtn;
-        Text quitTxt = CreatePixelButton(frameGO.transform, "QuitButton", "CIKIS", 0.18f,
-            new Vector2(340f, 80f), borderColor, oliveColor, builtinFont, 30, out quitBtn);
+        Text quitTxt = CreatePixelButtonWithIcon(frameGO.transform, "QuitButton", "CIKIS", 0.18f,
+            new Vector2(340f, 80f), borderColor, oliveColor, builtinFont, 30, quitIconSprite, Color.white, out quitBtn);
 
         Text bestTimeTxt = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.045f));
         MakeReadable(bestTimeTxt, 24, 1.5f);
@@ -1604,6 +1628,69 @@ public class BuildGameUITool : EditorWindow
         textRect.anchorMax = Vector2.one;
         textRect.offsetMin = Vector2.zero;
         textRect.offsetMax = Vector2.zero;
+
+        return txt;
+    }
+
+    // Same chunky pixel button as CreatePixelButton, but with a small
+    // icon docked on the left inside the fill - used for the Main Menu's
+    // OYNA / MAGAZA / CIKIS buttons so each one reads at a glance instead
+    // of being bare text. The label keeps MiddleCenter alignment but its
+    // rect is narrowed to the space right of the icon, so it centers in
+    // the remaining width rather than overlapping the icon.
+    Text CreatePixelButtonWithIcon(Transform parent, string name, string label, float yAnchor, Vector2 size, Color borderColor, Color fillColor, Font font, int fontSize, Sprite iconSprite, Color iconTint, out Button button)
+    {
+        GameObject btnGO = new GameObject(name, typeof(RectTransform));
+        btnGO.transform.SetParent(parent, false);
+        Image btnBorder = btnGO.AddComponent<Image>();
+        btnBorder.color = borderColor;
+        button = btnGO.AddComponent<Button>();
+        RectTransform btnRect = btnGO.GetComponent<RectTransform>();
+        btnRect.anchorMin = new Vector2(0.5f, yAnchor);
+        btnRect.anchorMax = new Vector2(0.5f, yAnchor);
+        btnRect.pivot = new Vector2(0.5f, 0.5f);
+        btnRect.sizeDelta = size;
+        btnRect.anchoredPosition = Vector2.zero;
+
+        GameObject fillGO = new GameObject("Fill", typeof(RectTransform));
+        fillGO.transform.SetParent(btnGO.transform, false);
+        Image fillImg = fillGO.AddComponent<Image>();
+        fillImg.color = fillColor;
+        RectTransform fillRect = fillGO.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = new Vector2(6f, 6f);
+        fillRect.offsetMax = new Vector2(-6f, -6f);
+        fillImg.raycastTarget = false;
+
+        float iconSize = size.y - 28f;
+        GameObject iconGO = new GameObject("Icon", typeof(RectTransform));
+        iconGO.transform.SetParent(fillGO.transform, false);
+        Image iconImg = iconGO.AddComponent<Image>();
+        iconImg.sprite = iconSprite;
+        iconImg.color = iconTint;
+        iconImg.preserveAspect = true;
+        iconImg.raycastTarget = false;
+        RectTransform iconRect = iconGO.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(iconSize, iconSize);
+        iconRect.anchoredPosition = new Vector2(10f + iconSize * 0.5f, 0f);
+
+        GameObject textGO = new GameObject("Text", typeof(RectTransform));
+        textGO.transform.SetParent(btnGO.transform, false);
+        Text txt = textGO.AddComponent<Text>();
+        txt.text = label;
+        txt.font = font;
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.color = Color.white;
+        MakeReadable(txt, fontSize, 1.5f);
+        RectTransform textRect2 = textGO.GetComponent<RectTransform>();
+        textRect2.anchorMin = Vector2.zero;
+        textRect2.anchorMax = Vector2.one;
+        textRect2.offsetMin = new Vector2(20f + iconSize, 0f);
+        textRect2.offsetMax = new Vector2(-10f, 0f);
 
         return txt;
     }
