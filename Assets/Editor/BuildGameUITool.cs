@@ -660,6 +660,19 @@ public class BuildGameUITool : EditorWindow
         SaveScene();
     }
 
+    // Full-width strip anchored to the top of the canvas, pivoted at its
+    // own top edge - so children anchored "top" relative to this rect
+    // land at the top of the SCREEN, not the top of some other box.
+    void ApplyBossHealthBarPanelAnchors(RectTransform panelRect)
+    {
+        if (panelRect == null) return;
+        panelRect.anchorMin = new Vector2(0f, 1f);
+        panelRect.anchorMax = new Vector2(1f, 1f);
+        panelRect.pivot = new Vector2(0.5f, 1f);
+        panelRect.anchoredPosition = Vector2.zero;
+        panelRect.sizeDelta = new Vector2(0f, 80f);
+    }
+
     GameObject CreateBossHealthBar(Transform parent, out Image fillImage)
     {
         Transform existingPanel = parent.Find("BossHealthBarPanel");
@@ -674,12 +687,21 @@ public class BuildGameUITool : EditorWindow
                 existingImg.type = Image.Type.Filled;
                 fillImage = existingImg;
                 existingPanel.gameObject.SetActive(false);
+                // The panel's OWN RectTransform used to be left at Unity's
+                // AddComponent default (center-anchored, 100x100) - the
+                // label/background below are anchored "top" relative to
+                // THIS rect, so an unfixed panel rect put them at screen
+                // center instead of the top of the screen. Re-apply the
+                // fix here too so re-running this button on an
+                // already-built scene actually corrects it.
+                ApplyBossHealthBarPanelAnchors(existingPanel.GetComponent<RectTransform>());
                 return existingPanel.gameObject;
             }
         }
 
         GameObject panelGO = new GameObject("BossHealthBarPanel", typeof(RectTransform));
         panelGO.transform.SetParent(parent, false);
+        ApplyBossHealthBarPanelAnchors(panelGO.GetComponent<RectTransform>());
 
         GameObject labelGO = new GameObject("BossLabel", typeof(RectTransform));
         labelGO.transform.SetParent(panelGO.transform, false);
