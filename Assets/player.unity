@@ -21042,6 +21042,52 @@ MonoBehaviour:
     m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: SATIN AL
+--- !u!1 &1757394959
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1757394961}
+  - component: {fileID: 1757394960}
+  m_Layer: 0
+  m_Name: RockBombPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1757394960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757394959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab3f0ed719334fcb8a293edf8b60bea0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RockBombPool
+  bombPrefab: {fileID: 2556390411657114164, guid: 216d4b5d22bc64ccd99afe2f7b2c6a38, type: 3}
+  initialSize: 6
+--- !u!4 &1757394961
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1757394959}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1764354187
 GameObject:
   m_ObjectHideFlags: 0
@@ -23560,6 +23606,8 @@ GameObject:
   - component: {fileID: 2099848710}
   - component: {fileID: 2099848712}
   - component: {fileID: 2099848711}
+  - component: {fileID: 2099848713}
+  - component: {fileID: 2099848714}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -23827,6 +23875,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGold
   runGold: 0
+--- !u!114 &2099848713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099848700}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32eae3830836487ba545ed8c5fbef222, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RockBombWeapon
+  throwInterval: 2.5
+  throwRange: 5
+  damage: 2
+--- !u!114 &2099848714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099848700}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38036efdf8d54d50a3874f1b7d075b26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DustNova
+  pulseInterval: 2
+  radius: 2.2
+  damage: 1
 --- !u!1 &2101040963
 GameObject:
   m_ObjectHideFlags: 0
@@ -24211,3 +24289,4 @@ SceneRoots:
   - {fileID: 188670177}
   - {fileID: 239869245}
   - {fileID: 1135663664}
+  - {fileID: 1757394961}

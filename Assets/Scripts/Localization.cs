@@ -60,6 +60,12 @@ public static class Localization
 
         { "upgrade_range_title", new Dictionary<string, string> { { "tr", "Saldiri Menzili" }, { "en", "Attack Range" } } },
         { "upgrade_range_desc", new Dictionary<string, string> { { "tr", "Menzil biraz artar" }, { "en", "Slightly longer range" } } },
+
+        { "upgrade_rockbomb_title", new Dictionary<string, string> { { "tr", "Patlayan Kaya" }, { "en", "Exploding Rock" } } },
+        { "upgrade_rockbomb_desc", new Dictionary<string, string> { { "tr", "Yeni silah: firlatilan kaya carptigi yerde patlayip alan hasari verir" }, { "en", "New weapon: a thrown rock explodes on impact, dealing area damage" } } },
+
+        { "upgrade_dustnova_title", new Dictionary<string, string> { { "tr", "Toz Firtinasi" }, { "en", "Dust Nova" } } },
+        { "upgrade_dustnova_desc", new Dictionary<string, string> { { "tr", "Yeni silah: etrafina periyodik toz dalgasi yayarak yakindaki dusmanlara hasar verir" }, { "en", "New weapon: periodically releases a dust wave, damaging nearby enemies" } } },
     };
 
     public static string Get(string key)

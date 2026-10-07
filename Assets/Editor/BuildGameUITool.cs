@@ -140,6 +140,20 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton ucuncu bir silah ekler: dusmana firlatilan, carptigi yerde alan hasari veren bir kaya. Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
+        if (GUILayout.Button("Build Rock Bomb Weapon"))
+        {
+            BuildRockBombWeapon();
+        }
+
+        EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton dorduncu bir silah ekler: oyuncunun etrafina periyodik olarak yayilan, yakindaki tum dusmanlara hasar veren bir toz dalgasi. Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
+        if (GUILayout.Button("Build Dust Nova Weapon"))
+        {
+            BuildDustNovaWeapon();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton ekrana hayatta kalma suresini (MM:SS) gosteren bir sayac ekler.", MessageType.Info);
         if (GUILayout.Button("Build Survival Timer"))
         {
@@ -1524,6 +1538,102 @@ public class BuildGameUITool : EditorWindow
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, prefabPath);
         Object.DestroyImmediate(temp);
         return prefab;
+    }
+
+    void BuildRockBombWeapon()
+    {
+        GameObject bombPrefab = CreateOrLoadRockBombPrefab();
+        if (bombPrefab == null)
+        {
+            Debug.LogWarning("Rock bomb prefab olusturulamadi.");
+            return;
+        }
+
+        EnsureRockBombPool(bombPrefab);
+
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player objesi bulunamadi.");
+            return;
+        }
+
+        bool rockBombExisted = playerObj.GetComponent<RockBombWeapon>() != null;
+        RockBombWeapon weapon = playerObj.GetComponent<RockBombWeapon>();
+        if (weapon == null) weapon = playerObj.AddComponent<RockBombWeapon>();
+        // Starts disabled - this is a level-up unlock (see
+        // PlayerUpgrades.UnlockRockBomb/UpgradeUI), not a starter weapon
+        // like the knife/orbit blades. Only force it off the first time
+        // the component is created; re-running this button on an
+        // already-unlocked save must never touch enabled again (that
+        // would silently re-lock an in-progress or finished run).
+        if (!rockBombExisted) weapon.enabled = false;
+        EditorUtility.SetDirty(weapon);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Ucuncu silah kuruldu: patlayan kaya (seviye atlamada acilir).");
+        SaveScene();
+    }
+
+    GameObject CreateOrLoadRockBombPrefab()
+    {
+        string prefabPath = "Assets/Prefabs/RockBomb.prefab";
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (existing != null) return existing;
+
+        // Same rock sprite the menu/shop frames use as a corner decoration -
+        // reused here as a gameplay object instead, so the thrown bomb
+        // reads as "a rock from this desert" rather than an unrelated prop.
+        Sprite rockSprite = LoadTileSprite(76);
+
+        GameObject temp = new GameObject("RockBomb");
+        SpriteRenderer sr = temp.AddComponent<SpriteRenderer>();
+        sr.sprite = rockSprite;
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = 6;
+
+        temp.AddComponent<RockBomb>();
+        temp.transform.localScale = Vector3.one * 1.3f;
+
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, prefabPath);
+        Object.DestroyImmediate(temp);
+        return prefab;
+    }
+
+    void EnsureRockBombPool(GameObject bombPrefab)
+    {
+        RockBombPool pool = Object.FindFirstObjectByType<RockBombPool>();
+        if (pool == null)
+        {
+            GameObject poolGO = new GameObject("RockBombPool");
+            pool = poolGO.AddComponent<RockBombPool>();
+        }
+        pool.bombPrefab = bombPrefab;
+        EditorUtility.SetDirty(pool);
+    }
+
+    void BuildDustNovaWeapon()
+    {
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player objesi bulunamadi.");
+            return;
+        }
+
+        // No prefab/pool needed - this weapon is just a periodic
+        // OverlapCircleAll pulse centered on the player, not a thrown
+        // object, so there's nothing to instantiate or pool.
+        bool dustNovaExisted = playerObj.GetComponent<DustNova>() != null;
+        DustNova weapon = playerObj.GetComponent<DustNova>();
+        if (weapon == null) weapon = playerObj.AddComponent<DustNova>();
+        // Same first-create-only lock as RockBombWeapon above.
+        if (!dustNovaExisted) weapon.enabled = false;
+        EditorUtility.SetDirty(weapon);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Dorduncu silah kuruldu: toz firtinasi (seviye atlamada acilir).");
+        SaveScene();
     }
 
     void BuildSurvivalTimer()

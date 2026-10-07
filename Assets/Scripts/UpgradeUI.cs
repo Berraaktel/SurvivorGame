@@ -21,9 +21,14 @@ public class UpgradeUI : MonoBehaviour
         public System.Action<PlayerUpgrades> apply;
     }
 
-    private static UpgradeDef[] BuildUpgradeList()
+    // Instance method (not static) because the two weapon-unlock entries
+    // need to check playerUpgrades to see whether that weapon is already
+    // unlocked - once it is, this stops offering it and the pool quietly
+    // narrows back down to the stat upgrades plus whichever weapon (if
+    // any) is still locked.
+    private UpgradeDef[] BuildUpgradeList()
     {
-        return new UpgradeDef[]
+        List<UpgradeDef> list = new List<UpgradeDef>
         {
             new UpgradeDef { title = Localization.Get("upgrade_speed_title"), description = Localization.Get("upgrade_speed_desc"), apply = (u) => u.ApplyMoveSpeed(0.5f) },
             new UpgradeDef { title = Localization.Get("upgrade_health_title"), description = Localization.Get("upgrade_health_desc"), apply = (u) => u.ApplyMaxHealth(2) },
@@ -31,6 +36,18 @@ public class UpgradeUI : MonoBehaviour
             new UpgradeDef { title = Localization.Get("upgrade_atkspeed_title"), description = Localization.Get("upgrade_atkspeed_desc"), apply = (u) => u.ApplyAttackSpeed(0.15f) },
             new UpgradeDef { title = Localization.Get("upgrade_range_title"), description = Localization.Get("upgrade_range_desc"), apply = (u) => u.ApplyAttackRange(0.5f) },
         };
+
+        if (playerUpgrades != null && !playerUpgrades.HasRockBomb())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_rockbomb_title"), description = Localization.Get("upgrade_rockbomb_desc"), apply = (u) => u.UnlockRockBomb() });
+        }
+
+        if (playerUpgrades != null && !playerUpgrades.HasDustNova())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_dustnova_title"), description = Localization.Get("upgrade_dustnova_desc"), apply = (u) => u.UnlockDustNova() });
+        }
+
+        return list.ToArray();
     }
 
     void Awake()
