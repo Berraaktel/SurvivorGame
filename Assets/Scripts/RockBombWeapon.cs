@@ -58,6 +58,9 @@ public class RockBombWeapon : MonoBehaviour
         {
             RockBombPool.Instance.SpawnBomb(transform.position, direction, damage, throwRange + 1f);
             if (AudioManager.Instance != null) AudioManager.Instance.PlayThrow();
+            // Small launch puff at the player's feet so the throw itself
+            // is visible, not just the (easy to miss) impact moments later.
+            FxSpawner.Burst(transform.position, new Color(0.6f, 0.45f, 0.3f), 6, 2.5f, 0.2f, 0.1f);
         }
     }
 }

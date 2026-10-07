@@ -45,13 +45,21 @@ public class DustNova : MonoBehaviour
         // Particles start at the player and travel outward fast enough to
         // reach 'radius' by the time their lifetime ends, so the burst
         // itself reads as an expanding dust ring instead of a small pop.
-        float lifetime = 0.3f;
-        FxSpawner.Burst(transform.position, new Color(0.85f, 0.72f, 0.45f, 0.85f), 18, radius / lifetime, lifetime, 0.14f);
+        // Count/size/lifetime bumped up from the first pass - at 18
+        // particles over 0.3s the ring faded before it was noticeable in
+        // a crowded screen.
+        float lifetime = 0.45f;
+        FxSpawner.Burst(transform.position, new Color(0.85f, 0.72f, 0.45f, 0.85f), 28, radius / lifetime, lifetime, 0.2f);
+
+        // Always audible, even on a pulse that hits nothing - otherwise
+        // the only sign the ability fired at all is the particle ring,
+        // which is easy to miss mid-fight.
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayThrow();
 
         if (hitAny)
         {
             if (AudioManager.Instance != null) AudioManager.Instance.PlayHit();
-            if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.08f, 0.06f);
+            if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.1f, 0.08f);
         }
     }
 }

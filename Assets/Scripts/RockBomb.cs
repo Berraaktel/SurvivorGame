@@ -67,8 +67,13 @@ public class RockBomb : MonoBehaviour
         }
 
         if (AudioManager.Instance != null) AudioManager.Instance.PlayHit();
-        FxSpawner.Burst(transform.position, new Color(0.82f, 0.52f, 0.22f), 14, 3.5f, 0.35f, 0.16f);
-        if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.12f, 0.09f);
+        // Two-layer burst so the explosion reads as an actual blast
+        // rather than a small particle pop lost in a crowded screen: a
+        // bright, fast core flash plus a bigger, slower smoke ring that
+        // lingers a bit longer.
+        FxSpawner.Burst(transform.position, new Color(1f, 0.85f, 0.4f), 10, 6f, 0.18f, 0.14f);
+        FxSpawner.Burst(transform.position, new Color(0.82f, 0.52f, 0.22f), 22, 4.2f, 0.5f, 0.22f);
+        if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.18f, 0.14f);
 
         gameObject.SetActive(false);
     }
