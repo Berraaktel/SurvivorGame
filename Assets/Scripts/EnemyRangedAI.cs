@@ -75,6 +75,11 @@ public class EnemyRangedAI : MonoBehaviour
             if (EnemyProjectilePool.Instance != null && dist > 0.0001f)
             {
                 EnemyProjectilePool.Instance.SpawnProjectile(rb.position, dir, projectileDamage);
+                // A quick flash at the ENEMY when it fires, same tint as
+                // the shot itself - without this the projectile just
+                // appears already in flight, with nothing on screen
+                // tying it back to "that thing over there shot it".
+                FxSpawner.Burst(rb.position, new Color(0.55f, 0.85f, 0.25f), 7, 2.2f, 0.18f, 0.09f);
             }
         }
     }

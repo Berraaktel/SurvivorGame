@@ -94,6 +94,7 @@ public class PlayerUpgrades : MonoBehaviour
     {
         HealthRegen hr = GetComponent<HealthRegen>();
         if (hr != null) hr.enabled = true;
+        PlayPassiveUnlockFx(new Color(1f, 0.92f, 0.55f));
     }
 
     public bool HasMagnet()
@@ -105,6 +106,7 @@ public class PlayerUpgrades : MonoBehaviour
     {
         XPOrb.magnetMultiplier = 1.8f;
         GoldOrb.magnetMultiplier = 1.8f;
+        PlayPassiveUnlockFx(new Color(0.55f, 0.75f, 1f));
     }
 
     public bool HasArmor()
@@ -117,5 +119,18 @@ public class PlayerUpgrades : MonoBehaviour
     {
         PlayerHealth ph = GetComponent<PlayerHealth>();
         if (ph != null) ph.armor += 1;
+        PlayPassiveUnlockFx(new Color(0.6f, 0.65f, 0.75f));
+    }
+
+    // The 3 passives above have no ongoing effect a player can clearly
+    // SEE the moment they're picked (Armor's damage reduction is silent,
+    // Magnet's wider pickup range only shows up later on a distant orb,
+    // Health Regen's first tick is seconds away) - without this, picking
+    // one looked and sounded exactly like picking nothing. Each gets its
+    // own tint so the three stay visually distinct from each other too.
+    void PlayPassiveUnlockFx(Color tint)
+    {
+        FxSpawner.Burst(transform.position, tint, 18, 2.6f, 0.45f, 0.16f);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayPickup();
     }
 }

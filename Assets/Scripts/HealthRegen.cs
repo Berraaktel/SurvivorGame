@@ -39,6 +39,12 @@ public class HealthRegen : MonoBehaviour
         if (playerHealth.CurrentHealth >= playerHealth.maxHealth) return;
 
         playerHealth.Heal(healAmount);
-        FxSpawner.Burst(transform.position, new Color(0.35f, 0.9f, 0.45f), 8, 1.8f, 0.3f, 0.12f);
+        // Warm gold/white, not green - green on this enemy-heavy screen
+        // already means "enemy projectile/hazard" (EnemyProjectile's
+        // tint), so a green heal tick read as just more hazard noise and
+        // got missed entirely. Also bumped size/lifetime and added a
+        // sound, since a silent 8-particle pop was easy to miss outright.
+        FxSpawner.Burst(transform.position, new Color(1f, 0.92f, 0.55f), 14, 2f, 0.5f, 0.17f);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayPickup();
     }
 }
