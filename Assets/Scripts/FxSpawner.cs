@@ -57,6 +57,17 @@ public static class FxSpawner
         main.simulationSpace = ParticleSystemSimulationSpace.World;
         main.gravityModifier = 0f;
         main.stopAction = ParticleSystemStopAction.None;
+        // Without this, a burst triggered while Time.timeScale is 0 (the
+        // level-up screen pauses the game while it's open - see
+        // UpgradeUI.ShowChoices/ChooseOption) never actually plays: the
+        // ParticleSystem's own simulation is scaled-time by default, so
+        // at timeScale 0 it spawns the particles and then simply never
+        // advances them - no movement, no fade, effectively invisible.
+        // This is exactly why the three new passive items' pick-moment
+        // effect didn't show at all. Unscaled time costs nothing during
+        // normal (timeScale 1) gameplay, where every other caller of
+        // this method already lives.
+        main.useUnscaledTime = true;
 
         var emission = ps.emission;
         emission.enabled = true;
