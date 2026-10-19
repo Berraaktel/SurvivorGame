@@ -67,6 +67,32 @@ public class EnemyHealth : MonoBehaviour
         if (isBoss && ActiveBoss == this) ActiveBoss = null;
     }
 
+    // Elite upgrade (see EliteEnemy) - multiplies the stats EnemyHealth
+    // itself owns, on top of whatever DifficultyManager already applied
+    // this OnEnable. Must run strictly after that OnEnable scaling (which
+    // is why EliteEnemy does its roll from Update, not OnEnable - Unity
+    // runs every component's OnEnable before any component's Update in
+    // the same frame, so this is guaranteed to see the scaled values).
+    public void BoostElite(float multiplier)
+    {
+        maxHealth = Mathf.Max(1, Mathf.RoundToInt(maxHealth * multiplier));
+        currentHealth = maxHealth;
+        xpValue = Mathf.Max(1, Mathf.RoundToInt(xpValue * multiplier));
+        goldValue = Mathf.Max(1, Mathf.RoundToInt(goldValue * multiplier));
+        if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
+    }
+
+    // Lets EliteEnemy re-tint this enemy without fighting FlashRed below -
+    // FlashRed always restores to 'originalColor' after the red flash, so
+    // setting sr.color directly from outside would get silently wiped out
+    // on this enemy's very next hit. Going through here updates the
+    // restore target itself instead.
+    public void SetBaseColor(Color color)
+    {
+        originalColor = color;
+        if (sr != null && flashRoutine == null) sr.color = color;
+    }
+
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;

@@ -107,5 +107,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4611898170913083118}
   m_SourcePrefab: {fileID: 100100000, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+--- !u!1 &2955403765639068919 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+  m_PrefabInstance: {fileID: 7927826135808469672}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4611898170913083118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2955403765639068919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e362e252e1504f3b9ceae8b00d34e74c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EliteEnemy
+  minChance: 0.05
+  maxChance: 0.35
+  rampDuration: 240
+  statMultiplier: 2.2
+  scaleMultiplier: 1.35
+  eliteTint: {r: 1, g: 0.85, b: 0.2, a: 1}

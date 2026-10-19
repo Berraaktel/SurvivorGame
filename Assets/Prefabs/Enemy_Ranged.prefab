@@ -92,6 +92,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3274541201426695212}
+    - targetCorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8343366956228963215}
   m_SourcePrefab: {fileID: 100100000, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
 --- !u!1 &2601833301939971741 stripped
 GameObject:
@@ -115,3 +118,21 @@ MonoBehaviour:
   rangeSlack: 0.5
   fireInterval: 1.8
   projectileDamage: 1
+--- !u!114 &-8343366956228963215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2601833301939971741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e362e252e1504f3b9ceae8b00d34e74c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EliteEnemy
+  minChance: 0.05
+  maxChance: 0.35
+  rampDuration: 240
+  statMultiplier: 2.2
+  scaleMultiplier: 1.35
+  eliteTint: {r: 1, g: 0.85, b: 0.2, a: 1}

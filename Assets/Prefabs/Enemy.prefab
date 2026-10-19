@@ -126,6 +126,7 @@ GameObject:
   - component: {fileID: 662856838199303802}
   - component: {fileID: 5522497569510096481}
   - component: {fileID: 3544737434916047544}
+  - component: {fileID: -7044284287187963894}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -312,3 +313,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 3
   xpValue: 1
+  goldValue: 1
+  isBoss: 0
+--- !u!114 &-7044284287187963894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5118059282405742175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e362e252e1504f3b9ceae8b00d34e74c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EliteEnemy
+  minChance: 0.05
+  maxChance: 0.35
+  rampDuration: 240
+  statMultiplier: 2.2
+  scaleMultiplier: 1.35
+  eliteTint: {r: 1, g: 0.85, b: 0.2, a: 1}

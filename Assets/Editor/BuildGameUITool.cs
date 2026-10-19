@@ -112,6 +112,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton Grunt/Scout/Brute/Ranged'e, zamanla artan kucuk bir ihtimalle 'Elite' (daha buyuk, altin renginde, cok daha guclu ve daha cok odul veren) olarak spawn olma sansi ekler. Boss etkilenmez. Once Build Enemy Variety (ve varsa Build Ranged Enemy) calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Elite Enemies"))
+        {
+            BuildEliteEnemies();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton, Boss hayattayken ekranin ustunde canini gosteren bir bar kurar. Once Build Enemy Variety calismis olmali.", MessageType.Info);
         if (GUILayout.Button("Build Boss Health Bar"))
         {
@@ -646,6 +653,39 @@ public class BuildGameUITool : EditorWindow
         }
         pool.projectilePrefab = projectilePrefab;
         EditorUtility.SetDirty(pool);
+    }
+
+    void BuildEliteEnemies()
+    {
+        string[] paths =
+        {
+            "Assets/Prefabs/Enemy.prefab",
+            "Assets/Prefabs/Enemy_Scout.prefab",
+            "Assets/Prefabs/Enemy_Brute.prefab",
+            "Assets/Prefabs/Enemy_Ranged.prefab",
+        };
+
+        int wired = 0;
+        foreach (string path in paths)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null) continue;
+
+            EliteEnemy elite = prefab.GetComponent<EliteEnemy>();
+            if (elite == null) elite = prefab.AddComponent<EliteEnemy>();
+            EditorUtility.SetDirty(prefab);
+            wired++;
+        }
+
+        if (wired == 0)
+        {
+            Debug.LogWarning("Hicbir dusman prefabi bulunamadi - once Build Enemy Variety / Build Ranged Enemy calistir.");
+            return;
+        }
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Elite dusman sansi eklendi (" + wired + " prefab). Boss etkilenmedi.");
+        SaveScene();
     }
 
     void BuildBossHealthBar()
