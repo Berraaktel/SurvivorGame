@@ -5,6 +5,11 @@ public class XPOrb : MonoBehaviour
     public int xpValue = 1;
     public float magnetRange = 2.5f;
     public float pickupRange = 0.3f;
+    // Shared across every pooled orb of this type - set once by the
+    // Miknatis/Magnet passive (PlayerUpgrades.UnlockMagnet) rather than
+    // tracked per-instance, since new orbs keep spawning after the
+    // passive is unlocked and all of them need the wider range too.
+    public static float magnetMultiplier = 1f;
     public float moveSpeed = 8f;
     public float spawnSettleTime = 0.5f;
 
@@ -42,7 +47,7 @@ public class XPOrb : MonoBehaviour
             return;
         }
 
-        if (dist <= magnetRange)
+        if (dist <= magnetRange * magnetMultiplier)
         {
             transform.position = Vector2.MoveTowards(transform.position, player.position, moveSpeed * Time.deltaTime);
         }

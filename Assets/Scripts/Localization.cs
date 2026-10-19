@@ -66,6 +66,15 @@ public static class Localization
 
         { "upgrade_dustnova_title", new Dictionary<string, string> { { "tr", "Toz Firtinasi" }, { "en", "Dust Nova" } } },
         { "upgrade_dustnova_desc", new Dictionary<string, string> { { "tr", "Yeni silah: etrafina periyodik toz dalgasi yayarak yakindaki dusmanlara hasar verir" }, { "en", "New weapon: periodically releases a dust wave, damaging nearby enemies" } } },
+
+        { "upgrade_regen_title", new Dictionary<string, string> { { "tr", "Can Yenileme" }, { "en", "Health Regen" } } },
+        { "upgrade_regen_desc", new Dictionary<string, string> { { "tr", "Yeni pasif: zamanla kendiliginden can yenilenir" }, { "en", "New passive: slowly heals you back over time" } } },
+
+        { "upgrade_magnet_title", new Dictionary<string, string> { { "tr", "Miknatis" }, { "en", "Magnet" } } },
+        { "upgrade_magnet_desc", new Dictionary<string, string> { { "tr", "Yeni pasif: XP ve altin toplama menzili artar" }, { "en", "New passive: wider XP and gold pickup range" } } },
+
+        { "upgrade_armor_title", new Dictionary<string, string> { { "tr", "Zirh" }, { "en", "Armor" } } },
+        { "upgrade_armor_desc", new Dictionary<string, string> { { "tr", "Yeni pasif: gelen hasar biraz azalir" }, { "en", "New passive: slightly reduces incoming damage" } } },
     };
 
     public static string Get(string key)

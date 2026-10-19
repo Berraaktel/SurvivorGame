@@ -23608,6 +23608,7 @@ GameObject:
   - component: {fileID: 2099848711}
   - component: {fileID: 2099848713}
   - component: {fileID: 2099848714}
+  - component: {fileID: 2099848715}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -23805,6 +23806,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 5
   damageCooldown: 0.5
+  armor: 0
 --- !u!114 &2099848708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23905,6 +23907,20 @@ MonoBehaviour:
   pulseInterval: 2
   radius: 2.2
   damage: 1
+--- !u!114 &2099848715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099848700}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65bd8e9a27874bbeac7e2c2662a4977e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthRegen
+  regenInterval: 3
+  healAmount: 1
 --- !u!1 &2101040963
 GameObject:
   m_ObjectHideFlags: 0

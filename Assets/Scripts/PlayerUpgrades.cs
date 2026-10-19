@@ -78,4 +78,44 @@ public class PlayerUpgrades : MonoBehaviour
         PlayerAttack pa = GetComponent<PlayerAttack>();
         if (pa != null) pa.attackRange += amount;
     }
+
+    // Passive items (Can Yenileme / Miknatis / Zirh) - same level-up
+    // unlock pattern as the weapons above: HasX() gates the UpgradeUI
+    // pool entry, UnlockX() flips it on. Unlike the weapons these don't
+    // all live on a single disabled/enabled component, since Magnet and
+    // Armor are single-value tweaks rather than their own behaviour.
+    public bool HasHealthRegen()
+    {
+        HealthRegen hr = GetComponent<HealthRegen>();
+        return hr != null && hr.enabled;
+    }
+
+    public void UnlockHealthRegen()
+    {
+        HealthRegen hr = GetComponent<HealthRegen>();
+        if (hr != null) hr.enabled = true;
+    }
+
+    public bool HasMagnet()
+    {
+        return XPOrb.magnetMultiplier > 1f;
+    }
+
+    public void UnlockMagnet()
+    {
+        XPOrb.magnetMultiplier = 1.8f;
+        GoldOrb.magnetMultiplier = 1.8f;
+    }
+
+    public bool HasArmor()
+    {
+        PlayerHealth ph = GetComponent<PlayerHealth>();
+        return ph != null && ph.armor > 0;
+    }
+
+    public void UnlockArmor()
+    {
+        PlayerHealth ph = GetComponent<PlayerHealth>();
+        if (ph != null) ph.armor += 1;
+    }
 }

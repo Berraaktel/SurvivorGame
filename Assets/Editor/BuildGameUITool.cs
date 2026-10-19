@@ -154,6 +154,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton bir pasif ekler: zamanla kendiliginden can yenilenmesi. Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
+        if (GUILayout.Button("Build Health Regen Passive"))
+        {
+            BuildHealthRegenPassive();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton ekrana hayatta kalma suresini (MM:SS) gosteren bir sayac ekler.", MessageType.Info);
         if (GUILayout.Button("Build Survival Timer"))
         {
@@ -1655,6 +1662,29 @@ public class BuildGameUITool : EditorWindow
 
         AssetDatabase.SaveAssets();
         Debug.Log("Dorduncu silah kuruldu: toz firtinasi (seviye atlamada acilir).");
+        SaveScene();
+    }
+
+    void BuildHealthRegenPassive()
+    {
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player objesi bulunamadi.");
+            return;
+        }
+
+        bool healthRegenExisted = playerObj.GetComponent<HealthRegen>() != null;
+        HealthRegen regen = playerObj.GetComponent<HealthRegen>();
+        if (regen == null) regen = playerObj.AddComponent<HealthRegen>();
+        // Same first-create-only lock as RockBombWeapon/DustNova - only
+        // force it off the moment the component is created, never on a
+        // later re-run of this button.
+        if (!healthRegenExisted) regen.enabled = false;
+        EditorUtility.SetDirty(regen);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Pasif kuruldu: can yenileme (seviye atlamada acilir).");
         SaveScene();
     }
 

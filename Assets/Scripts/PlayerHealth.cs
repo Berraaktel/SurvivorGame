@@ -5,6 +5,11 @@ public class PlayerHealth : MonoBehaviour
 {
     public int maxHealth = 5;
     public float damageCooldown = 0.5f;
+    // Flat reduction applied to every incoming hit before it's subtracted
+    // (see Zirh/Armor passive - PlayerUpgrades.UnlockArmor). Never lets a
+    // hit through at less than 1 damage, so Armor softens but never
+    // removes the threat of contact/projectile damage entirely.
+    public int armor = 0;
 
     private int currentHealth;
     private float lastDamageTime = -999f;
@@ -32,7 +37,8 @@ public class PlayerHealth : MonoBehaviour
         if (Time.time - lastDamageTime < damageCooldown) return;
         lastDamageTime = Time.time;
 
-        currentHealth -= amount;
+        int reducedAmount = Mathf.Max(1, amount - armor);
+        currentHealth -= reducedAmount;
         if (currentHealth < 0) currentHealth = 0;
 
         Debug.Log("Player health: " + currentHealth);

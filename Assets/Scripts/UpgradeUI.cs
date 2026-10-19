@@ -47,6 +47,21 @@ public class UpgradeUI : MonoBehaviour
             list.Add(new UpgradeDef { title = Localization.Get("upgrade_dustnova_title"), description = Localization.Get("upgrade_dustnova_desc"), apply = (u) => u.UnlockDustNova() });
         }
 
+        if (playerUpgrades != null && !playerUpgrades.HasHealthRegen())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_regen_title"), description = Localization.Get("upgrade_regen_desc"), apply = (u) => u.UnlockHealthRegen() });
+        }
+
+        if (playerUpgrades != null && !playerUpgrades.HasMagnet())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_magnet_title"), description = Localization.Get("upgrade_magnet_desc"), apply = (u) => u.UnlockMagnet() });
+        }
+
+        if (playerUpgrades != null && !playerUpgrades.HasArmor())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_armor_title"), description = Localization.Get("upgrade_armor_desc"), apply = (u) => u.UnlockArmor() });
+        }
+
         return list.ToArray();
     }
 
