@@ -107,5 +107,30 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5989384818275644437}
   m_SourcePrefab: {fileID: 100100000, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+--- !u!1 &2804040364194540675 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+  m_PrefabInstance: {fileID: 7056872430421375708}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-5989384818275644437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2804040364194540675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecdd33a5b7be4fb99c5148360defa327, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossAttack
+  attackInterval: 6
+  telegraphDuration: 0.6
+  projectileCount: 10
+  baseProjectileDamage: 2
+  telegraphColor: {r: 1, g: 0.25, b: 0.25, a: 1}

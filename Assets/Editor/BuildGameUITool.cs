@@ -126,6 +126,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton Boss'a kendine ozgu bir saldiri paterni ekler: belirli araliklarla once kirmizi renkte yanip sonerek haber verir, sonra kendi etrafina daire seklinde mermi yagmuru atar. Sadece Enemy_Boss prefabina eklenir, diger dusmanlari etkilemez. Once Build Boss Health Bar ve Build Ranged Enemy (mermi havuzu icin) calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Boss Attack Pattern"))
+        {
+            BuildBossAttack();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton seviye atlayinca cikan 3 secenekli yukseltme ekranini kurar.", MessageType.Info);
         if (GUILayout.Button("Build Upgrade System"))
         {
@@ -685,6 +692,25 @@ public class BuildGameUITool : EditorWindow
 
         AssetDatabase.SaveAssets();
         Debug.Log("Elite dusman sansi eklendi (" + wired + " prefab). Boss etkilenmedi.");
+        SaveScene();
+    }
+
+    void BuildBossAttack()
+    {
+        string path = "Assets/Prefabs/Enemy_Boss.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null)
+        {
+            Debug.LogWarning("Enemy_Boss.prefab bulunamadi - once Build Enemy Variety calismis olmali.");
+            return;
+        }
+
+        BossAttack attack = prefab.GetComponent<BossAttack>();
+        if (attack == null) attack = prefab.AddComponent<BossAttack>();
+
+        EditorUtility.SetDirty(prefab);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Boss'a ozel saldiri paterni eklendi (telegraph + daire mermi). Diger dusmanlar etkilenmedi.");
         SaveScene();
     }
 
