@@ -35,6 +35,9 @@ public class PlayerUpgrades : MonoBehaviour
 
         DustNova dn = GetComponent<DustNova>();
         if (dn != null) dn.damage += amount;
+
+        LightningWeapon lw = GetComponent<LightningWeapon>();
+        if (lw != null) lw.damage += amount;
     }
 
     // Weapon-unlock level-up choices (see UpgradeUI.BuildUpgradeList) read
@@ -65,6 +68,18 @@ public class PlayerUpgrades : MonoBehaviour
     {
         DustNova dn = GetComponent<DustNova>();
         if (dn != null) dn.enabled = true;
+    }
+
+    public bool HasLightning()
+    {
+        LightningWeapon lw = GetComponent<LightningWeapon>();
+        return lw != null && lw.enabled;
+    }
+
+    public void UnlockLightning()
+    {
+        LightningWeapon lw = GetComponent<LightningWeapon>();
+        if (lw != null) lw.enabled = true;
     }
 
     public void ApplyAttackSpeed(float reduceSeconds)

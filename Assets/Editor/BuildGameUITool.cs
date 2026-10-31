@@ -168,6 +168,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton besinci bir silah ekler: en yakin dusmana anlik hasar verir, sonra yakinindaki baska dusmanlara zincirleme sicrar (toplam en fazla 3 hedef). Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
+        if (GUILayout.Button("Build Lightning Weapon"))
+        {
+            BuildLightningWeapon();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton bir pasif ekler: zamanla kendiliginden can yenilenmesi. Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
         if (GUILayout.Button("Build Health Regen Passive"))
         {
@@ -1728,6 +1735,29 @@ public class BuildGameUITool : EditorWindow
 
         AssetDatabase.SaveAssets();
         Debug.Log("Dorduncu silah kuruldu: toz firtinasi (seviye atlamada acilir).");
+        SaveScene();
+    }
+
+    void BuildLightningWeapon()
+    {
+        GameObject playerObj = GameObject.Find("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player objesi bulunamadi.");
+            return;
+        }
+
+        // No prefab/pool needed either - this weapon is instant hitscan
+        // (OverlapCircleAll + TakeDamage), same reasoning as DustNova
+        // above, just chained across targets instead of a single radius.
+        bool lightningExisted = playerObj.GetComponent<LightningWeapon>() != null;
+        LightningWeapon weapon = playerObj.GetComponent<LightningWeapon>();
+        if (weapon == null) weapon = playerObj.AddComponent<LightningWeapon>();
+        if (!lightningExisted) weapon.enabled = false;
+        EditorUtility.SetDirty(weapon);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Besinci silah kuruldu: yildirim zinciri (seviye atlamada acilir).");
         SaveScene();
     }
 

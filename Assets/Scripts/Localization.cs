@@ -67,6 +67,9 @@ public static class Localization
         { "upgrade_dustnova_title", new Dictionary<string, string> { { "tr", "Toz Firtinasi" }, { "en", "Dust Nova" } } },
         { "upgrade_dustnova_desc", new Dictionary<string, string> { { "tr", "Yeni silah: etrafina periyodik toz dalgasi yayarak yakindaki dusmanlara hasar verir" }, { "en", "New weapon: periodically releases a dust wave, damaging nearby enemies" } } },
 
+        { "upgrade_lightning_title", new Dictionary<string, string> { { "tr", "Yildirim Zinciri" }, { "en", "Chain Lightning" } } },
+        { "upgrade_lightning_desc", new Dictionary<string, string> { { "tr", "Yeni silah: en yakin dusmana anlik carpar, yakindaki digerlerine zincirleme sicrar" }, { "en", "New weapon: strikes the nearest enemy instantly and chains to others nearby" } } },
+
         { "upgrade_regen_title", new Dictionary<string, string> { { "tr", "Can Yenileme" }, { "en", "Health Regen" } } },
         { "upgrade_regen_desc", new Dictionary<string, string> { { "tr", "Yeni pasif: zamanla kendiliginden can yenilenir" }, { "en", "New passive: slowly heals you back over time" } } },
 
