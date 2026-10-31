@@ -14,6 +14,7 @@ public static class Localization
     private static readonly Dictionary<string, Dictionary<string, string>> Strings = new Dictionary<string, Dictionary<string, string>>
     {
         { "game_over", new Dictionary<string, string> { { "tr", "OYUN BITTI" }, { "en", "GAME OVER" } } },
+        { "victory_title", new Dictionary<string, string> { { "tr", "ZAFER!" }, { "en", "VICTORY!" } } },
         { "main_menu_title", new Dictionary<string, string> { { "tr", "SURVIVORGAME" }, { "en", "SURVIVORGAME" } } },
         { "play_button", new Dictionary<string, string> { { "tr", "OYNA" }, { "en", "PLAY" } } },
         { "quit_button", new Dictionary<string, string> { { "tr", "CIKIS" }, { "en", "QUIT" } } },

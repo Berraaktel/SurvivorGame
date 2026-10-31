@@ -196,6 +196,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton bir 'Zafer' ekrani kurar: hayatta kalma suresi 10 dakikayi (DifficultyManager'in zorlugu en yuksege ciktigi an) gecince bir kere acilir, o ana kadarki altini bankaya yatirir ve 'Devam Et' ile oyuna kaldigin yerden devam edebilirsin. Once Build Survival Timer ve Build Gold System calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Victory Screen"))
+        {
+            BuildVictoryScreen();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton oyuncuya basit bir yuruyus kare animasyonu ekler (Animator gerekmez).", MessageType.Info);
         if (GUILayout.Button("Build Player Walk Animation"))
         {
@@ -1220,6 +1227,98 @@ public class BuildGameUITool : EditorWindow
         return panelGO;
     }
 
+    // Close clone of CreateGameOverPanel above - same frame/backdrop
+    // construction, reusing the same CreateBestTimeLabel/CreateGoldEarnedLabel/
+    // CreatePixelButtonWithIcon helpers, just with a gold fill instead of
+    // sand/rust and a single "continue" button instead of "restart".
+    GameObject CreateVictoryPanel(Transform parent, out Text victoryText, out Text continueButtonText, out Text timeText, out Text goldEarnedText)
+    {
+        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
+        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
+        Color goldFillColor = new Color(0.85f, 0.64f, 0.14f, 1f);
+        Color rustColor = new Color(0.76f, 0.38f, 0.16f, 1f);
+
+        Transform existingOld = parent.Find("VictoryPanel");
+        if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
+
+        GameObject panelGO = new GameObject("VictoryPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(parent, false);
+        panelGO.transform.SetAsLastSibling();
+        Image panelImage = panelGO.AddComponent<Image>();
+        panelImage.color = backdropColor;
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.offsetMin = Vector2.zero;
+        panelRect.offsetMax = Vector2.zero;
+
+        GameObject frameGO = new GameObject("VictoryFrame", typeof(RectTransform));
+        frameGO.transform.SetParent(panelGO.transform, false);
+        Image frameBorder = frameGO.AddComponent<Image>();
+        frameBorder.color = borderColor;
+        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.sizeDelta = new Vector2(700f, 560f);
+        frameRect.anchoredPosition = Vector2.zero;
+
+        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
+        frameFillGO.transform.SetParent(frameGO.transform, false);
+        Image frameFill = frameFillGO.AddComponent<Image>();
+        frameFill.color = goldFillColor;
+        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
+        frameFillRect.anchorMin = Vector2.zero;
+        frameFillRect.anchorMax = Vector2.one;
+        frameFillRect.offsetMin = new Vector2(14f, 14f);
+        frameFillRect.offsetMax = new Vector2(-14f, -14f);
+
+        GameObject textGO = new GameObject("VictoryText", typeof(RectTransform));
+        textGO.transform.SetParent(frameGO.transform, false);
+        Text text = textGO.AddComponent<Text>();
+        text.text = "ZAFER!";
+        text.font = builtinFont;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.color = Color.white;
+        MakeReadable(text, 56, 2.5f);
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = new Vector2(0.5f, 0.86f);
+        textRect.anchorMax = new Vector2(0.5f, 0.86f);
+        textRect.pivot = new Vector2(0.5f, 0.5f);
+        textRect.sizeDelta = new Vector2(640f, 110f);
+        textRect.anchoredPosition = Vector2.zero;
+
+        // Gold-coin icons flank the title instead of Game Over's skulls -
+        // same LoadTileSprite(39) already used for the Shop's gold
+        // balance / Main Menu's shop icon, so no new sprite asset risk.
+        Sprite goldSprite = LoadTileSprite(39);
+        CreateDecorSprite(frameGO.transform, "GoldIconLeft", new Vector2(0.5f, 0.86f), new Vector2(-260f, 0f), new Vector2(48f, 48f), goldSprite);
+        CreateDecorSprite(frameGO.transform, "GoldIconRight", new Vector2(0.5f, 0.86f), new Vector2(260f, 0f), new Vector2(48f, 48f), goldSprite);
+
+        Sprite rockSprite = LoadTileSprite(76);
+        CreateDecorSprite(frameGO.transform, "RockLeft", new Vector2(0f, 0f), new Vector2(34f, 34f), new Vector2(56f, 56f), rockSprite);
+        CreateDecorSprite(frameGO.transform, "RockRight", new Vector2(1f, 0f), new Vector2(-34f, 34f), new Vector2(56f, 56f), rockSprite);
+
+        Sprite continueIconSprite = LoadWeaponSprite(19);
+        Button continueBtn;
+        Text buttonText = CreatePixelButtonWithIcon(frameGO.transform, "ContinueButton", "Devam Et", 0.20f,
+            new Vector2(340f, 92f), borderColor, rustColor, builtinFont, 30, continueIconSprite, Color.white, out continueBtn);
+
+        Text goldEarnedTxtFresh = CreateGoldEarnedLabel(frameGO.transform, new Vector2(0.5f, 0.60f));
+        MakeReadable(goldEarnedTxtFresh, 28, 1.5f);
+        Text timeTxtFresh = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.50f));
+        MakeReadable(timeTxtFresh, 28, 1.5f);
+
+        panelGO.SetActive(false);
+        victoryText = text;
+        continueButtonText = buttonText;
+        timeText = timeTxtFresh;
+        goldEarnedText = goldEarnedTxtFresh;
+        return panelGO;
+    }
+
     // Small centered label used for the "best time" line on both the
     // Game Over panel and the main menu - same look, different parent.
     Text CreateBestTimeLabel(Transform parent, Vector2 anchor)
@@ -1822,6 +1921,30 @@ public class BuildGameUITool : EditorWindow
         timerUI.timerText = timerText;
 
         Debug.Log("Hayatta kalma sayaci kuruldu.");
+        SaveScene();
+    }
+
+    void BuildVictoryScreen()
+    {
+        EnsureEventSystem();
+        Canvas canvas = FindOrCreateCanvas();
+
+        Text victoryText;
+        Text continueButtonText;
+        Text timeText;
+        Text goldEarnedText;
+        GameObject panel = CreateVictoryPanel(canvas.transform, out victoryText, out continueButtonText, out timeText, out goldEarnedText);
+
+        VictoryUI victory = canvas.GetComponent<VictoryUI>();
+        if (victory == null) victory = canvas.gameObject.AddComponent<VictoryUI>();
+        victory.panel = panel;
+        victory.victoryText = victoryText;
+        victory.continueButtonText = continueButtonText;
+        victory.timeText = timeText;
+        victory.goldEarnedText = goldEarnedText;
+
+        EditorUtility.SetDirty(canvas.gameObject);
+        Debug.Log("Zafer ekrani kuruldu (10 dakikada aciliyor).");
         SaveScene();
     }
 
