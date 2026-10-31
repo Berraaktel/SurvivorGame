@@ -32,7 +32,16 @@ public class BossAttack : MonoBehaviour
 
     void Awake()
     {
-        sr = GetComponentInChildren<SpriteRenderer>();
+        // Same child-vs-root sprite lookup EnemyHealth/ApplyPermanentUpgrades
+        // use: Enemy.prefab's root GameObject carries its own (disabled,
+        // leftover) SpriteRenderer, and the one that's actually visible
+        // lives on the "SpriteVisual" child instead. A plain
+        // GetComponentInChildren<SpriteRenderer>() returns the root's
+        // disabled one first (it still counts even though enabled=false),
+        // so the telegraph color-pulse was silently writing to a renderer
+        // nobody ever sees - this is why it never showed up visually.
+        Transform visual = transform.Find("SpriteVisual");
+        sr = visual != null ? visual.GetComponent<SpriteRenderer>() : GetComponent<SpriteRenderer>();
     }
 
     void OnEnable()
