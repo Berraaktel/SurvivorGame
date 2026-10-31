@@ -111,6 +111,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4611898170913083118}
+    - targetCorrespondingSourceObject: {fileID: 5118059282405742175, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7453946943464402594}
   m_SourcePrefab: {fileID: 100100000, guid: f5935536a053848fea51c5eb4b0a247d, type: 3}
 --- !u!1 &2955403765639068919 stripped
 GameObject:
@@ -135,3 +138,19 @@ MonoBehaviour:
   statMultiplier: 2.2
   scaleMultiplier: 1.35
   eliteTint: {r: 1, g: 0.85, b: 0.2, a: 1}
+--- !u!114 &7453946943464402594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2955403765639068919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b0a0599150a48c9ad3498302af8f314, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Splitter
+  splitCount: 2
+  splitEnemyTypeIndex: 0
+  splitHealthMultiplier: 0.6
+  scatterRadius: 0.4

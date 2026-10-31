@@ -133,6 +133,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton Brute'a olunce 2 zayif Grunt'a bolunme ozelligi ekler. Sadece Enemy_Brute prefabina eklenir, diger dusmanlari etkilemez. Once Build Enemy Variety calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Splitter Enemy"))
+        {
+            BuildSplitterEnemy();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton seviye atlayinca cikan 3 secenekli yukseltme ekranini kurar.", MessageType.Info);
         if (GUILayout.Button("Build Upgrade System"))
         {
@@ -718,6 +725,25 @@ public class BuildGameUITool : EditorWindow
         EditorUtility.SetDirty(prefab);
         AssetDatabase.SaveAssets();
         Debug.Log("Boss'a ozel saldiri paterni eklendi (telegraph + daire mermi). Diger dusmanlar etkilenmedi.");
+        SaveScene();
+    }
+
+    void BuildSplitterEnemy()
+    {
+        string path = "Assets/Prefabs/Enemy_Brute.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null)
+        {
+            Debug.LogWarning("Enemy_Brute.prefab bulunamadi - once Build Enemy Variety calismis olmali.");
+            return;
+        }
+
+        Splitter splitter = prefab.GetComponent<Splitter>();
+        if (splitter == null) splitter = prefab.AddComponent<Splitter>();
+
+        EditorUtility.SetDirty(prefab);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Brute'a bolunme ozelligi eklendi (olunce 2 Grunt dogar). Diger dusmanlar etkilenmedi.");
         SaveScene();
     }
 

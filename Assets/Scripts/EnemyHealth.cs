@@ -18,6 +18,11 @@ public class EnemyHealth : MonoBehaviour
     public static EnemyHealth ActiveBoss;
 
     public event System.Action<int, int> OnHealthChanged;
+    // Fired once, right before this object deactivates on death - lets a
+    // component like Splitter react to the death itself (e.g. spawn
+    // replacements at this position) without needing its own copy of the
+    // death-detection logic TakeDamage already does below.
+    public event System.Action OnDied;
     public int CurrentHealth { get { return currentHealth; } }
 
     private int currentHealth;
@@ -82,6 +87,19 @@ public class EnemyHealth : MonoBehaviour
         if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
     }
 
+    // Same stat-scaling math as BoostElite above, kept as its own method
+    // (rather than reusing BoostElite with a sub-1 multiplier) so a call
+    // site reads as what it means - Splitter shrinking a freshly-spawned
+    // child enemy, not "boosting" it like EliteEnemy does.
+    public void ScaleStats(float multiplier)
+    {
+        maxHealth = Mathf.Max(1, Mathf.RoundToInt(maxHealth * multiplier));
+        currentHealth = maxHealth;
+        xpValue = Mathf.Max(1, Mathf.RoundToInt(xpValue * multiplier));
+        goldValue = Mathf.Max(0, Mathf.RoundToInt(goldValue * multiplier));
+        if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
+    }
+
     // Lets EliteEnemy re-tint this enemy without fighting FlashRed below -
     // FlashRed always restores to 'originalColor' after the red flash, so
     // setting sr.color directly from outside would get silently wiped out
@@ -115,6 +133,11 @@ public class EnemyHealth : MonoBehaviour
             if (AudioManager.Instance != null) AudioManager.Instance.PlayEnemyDeath();
             FxSpawner.Burst(transform.position, new Color(0.75f, 0.15f, 0.12f), 12, 3f, 0.4f, 0.14f);
             if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.10f, 0.08f);
+            // Fired before SetActive(false) so transform.position is still
+            // this enemy's death spot for anyone listening (e.g. Splitter
+            // spawning replacements there), not wherever it gets pooled
+            // back to.
+            if (OnDied != null) OnDied();
             gameObject.SetActive(false);
         }
     }
