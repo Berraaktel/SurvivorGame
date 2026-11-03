@@ -182,6 +182,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton, bir silah max seviyeye ulasip esleskeni pasifi aldiginda ekranda beliren 'X -> Y!' evrim banner'ini kurar (orn. 'YILDIRIM ZINCIRI -> SIMSEK FIRTINASI!'). 5 silahin evrim sistemi icin gerekli - Build Gold System'dan sonra calistir.", MessageType.Info);
+        if (GUILayout.Button("Build Evolution Banner"))
+        {
+            BuildEvolutionBanner();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton bir pasif ekler: zamanla kendiliginden can yenilenmesi. Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
         if (GUILayout.Button("Build Health Regen Passive"))
         {
@@ -1884,6 +1891,68 @@ public class BuildGameUITool : EditorWindow
         AssetDatabase.SaveAssets();
         Debug.Log("Besinci silah kuruldu: yildirim zinciri (seviye atlamada acilir).");
         SaveScene();
+    }
+
+    void BuildEvolutionBanner()
+    {
+        EnsureEventSystem();
+        Canvas canvas = FindOrCreateCanvas();
+
+        Text label;
+        GameObject panel = CreateEvolutionBanner(canvas.transform, out label);
+
+        EvolutionBanner banner = canvas.GetComponent<EvolutionBanner>();
+        if (banner == null) banner = canvas.gameObject.AddComponent<EvolutionBanner>();
+        banner.panel = panel;
+        banner.label = label;
+
+        EditorUtility.SetDirty(canvas.gameObject);
+        Debug.Log("Silah evrimi banner'i kuruldu.");
+        SaveScene();
+    }
+
+    GameObject CreateEvolutionBanner(Transform parent, out Text label)
+    {
+        Transform existingPanel = parent.Find("EvolutionBannerPanel");
+        if (existingPanel != null)
+        {
+            Transform existingText = existingPanel.Find("EvolutionBannerText");
+            Text t = existingText != null ? existingText.GetComponent<Text>() : null;
+            if (t != null) MakeReadable(t, 34, 2f);
+            label = t;
+            return existingPanel.gameObject;
+        }
+
+        GameObject panelGO = new GameObject("EvolutionBannerPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(parent, false);
+        Image bg = panelGO.AddComponent<Image>();
+        bg.sprite = GetOrCreateFlatSprite();
+        bg.type = Image.Type.Sliced;
+        bg.color = new Color(0f, 0f, 0f, 0.55f);
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.5f, 1f);
+        panelRect.anchorMax = new Vector2(0.5f, 1f);
+        panelRect.pivot = new Vector2(0.5f, 1f);
+        panelRect.anchoredPosition = new Vector2(0f, -110f);
+        panelRect.sizeDelta = new Vector2(640f, 70f);
+
+        GameObject textGO = new GameObject("EvolutionBannerText", typeof(RectTransform));
+        textGO.transform.SetParent(panelGO.transform, false);
+        Text text = textGO.AddComponent<Text>();
+        text.text = "";
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.alignment = TextAnchor.MiddleCenter;
+        text.color = new Color(1f, 0.85f, 0.25f);
+        MakeReadable(text, 32, 2f);
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        panelGO.SetActive(false);
+        label = text;
+        return panelGO;
     }
 
     void BuildHealthRegenPassive()

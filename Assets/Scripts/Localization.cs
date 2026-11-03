@@ -15,6 +15,23 @@ public static class Localization
     {
         { "game_over", new Dictionary<string, string> { { "tr", "OYUN BITTI" }, { "en", "GAME OVER" } } },
         { "victory_title", new Dictionary<string, string> { { "tr", "ZAFER!" }, { "en", "VICTORY!" } } },
+
+        { "evo_knife", new Dictionary<string, string> { { "tr", "BICAK -> BIN BICAK!" }, { "en", "KNIFE -> THOUSAND KNIVES!" } } },
+        { "evo_orbit", new Dictionary<string, string> { { "tr", "DONEN BICAKLAR -> OLUM CEMBERI!" }, { "en", "SPINNING BLADES -> DEATH RING!" } } },
+        { "evo_rockbomb", new Dictionary<string, string> { { "tr", "KAYA BOMBASI -> METEOR YAGMURU!" }, { "en", "ROCK BOMB -> METEOR SHOWER!" } } },
+        { "evo_dustnova", new Dictionary<string, string> { { "tr", "TOZ PATLAMASI -> KUM FIRTINASI!" }, { "en", "DUST NOVA -> SANDSTORM!" } } },
+        { "evo_lightning", new Dictionary<string, string> { { "tr", "YILDIRIM ZINCIRI -> SIMSEK FIRTINASI!" }, { "en", "LIGHTNING CHAIN -> THUNDERSTORM!" } } },
+
+        { "upgrade_knife_lvl_title", new Dictionary<string, string> { { "tr", "Bicagi Guclendir" }, { "en", "Strengthen Knife" } } },
+        { "upgrade_knife_lvl_desc", new Dictionary<string, string> { { "tr", "Bicak daha sik ve guclu atilir. Max seviyede Zirh ile Bin Bicak'a evrimlesir." }, { "en", "The knife throws faster and hits harder. At max level, evolves into Thousand Knives with Armor." } } },
+        { "upgrade_orbit_lvl_title", new Dictionary<string, string> { { "tr", "Donen Bicaklari Guclendir" }, { "en", "Strengthen Spinning Blades" } } },
+        { "upgrade_orbit_lvl_desc", new Dictionary<string, string> { { "tr", "Bicaklar daha hizli doner, daha cok hasar verir. Max seviyede Miknatis ile Olum Cemberi'ne evrimlesir." }, { "en", "The blades spin faster and hit harder. At max level, evolves into Death Ring with Magnet." } } },
+        { "upgrade_rockbomb_lvl_title", new Dictionary<string, string> { { "tr", "Kaya Bombasini Guclendir" }, { "en", "Strengthen Rock Bomb" } } },
+        { "upgrade_rockbomb_lvl_desc", new Dictionary<string, string> { { "tr", "Bomba daha sik atilir, daha cok hasar verir. Max seviyede Can Yenileme ile Meteor Yagmuru'na evrimlesir." }, { "en", "The bomb throws more often and hits harder. At max level, evolves into Meteor Shower with Health Regen." } } },
+        { "upgrade_dustnova_lvl_title", new Dictionary<string, string> { { "tr", "Toz Patlamasini Guclendir" }, { "en", "Strengthen Dust Nova" } } },
+        { "upgrade_dustnova_lvl_desc", new Dictionary<string, string> { { "tr", "Patlama daha sik ve genis olur. Max seviyede Zirh ile Kum Firtinasi'na evrimlesir." }, { "en", "The pulse fires more often over a wider area. At max level, evolves into Sandstorm with Armor." } } },
+        { "upgrade_lightning_lvl_title", new Dictionary<string, string> { { "tr", "Yildirim Zincirini Guclendir" }, { "en", "Strengthen Lightning Chain" } } },
+        { "upgrade_lightning_lvl_desc", new Dictionary<string, string> { { "tr", "Yildirim daha sik carpar, daha cok hasar verir. Max seviyede Miknatis ile Simsek Firtinasi'na evrimlesir." }, { "en", "The lightning strikes more often and hits harder. At max level, evolves into Thunderstorm with Magnet." } } },
         { "main_menu_title", new Dictionary<string, string> { { "tr", "SURVIVORGAME" }, { "en", "SURVIVORGAME" } } },
         { "play_button", new Dictionary<string, string> { { "tr", "OYNA" }, { "en", "PLAY" } } },
         { "quit_button", new Dictionary<string, string> { { "tr", "CIKIS" }, { "en", "QUIT" } } },

@@ -148,4 +148,71 @@ public class PlayerUpgrades : MonoBehaviour
         FxSpawner.Burst(transform.position, tint, 18, 2.6f, 0.45f, 0.16f);
         if (AudioManager.Instance != null) AudioManager.Instance.PlayPickup();
     }
+
+    // Per-weapon leveling for the evolution system (see each weapon's own
+    // CanLevelUp/LevelUp) - UpgradeUI.BuildUpgradeList reads CanLevelUpX()
+    // to decide whether to keep offering that weapon's "Guclendir" choice,
+    // and calls LevelUpX() when picked. Wrapping these here keeps
+    // UpgradeUI talking only to PlayerUpgrades, same as every other
+    // upgrade above, instead of reaching into each weapon component
+    // directly.
+    public bool CanLevelUpKnife()
+    {
+        PlayerAttack pa = GetComponent<PlayerAttack>();
+        return pa != null && pa.CanLevelUp();
+    }
+
+    public void LevelUpKnife()
+    {
+        PlayerAttack pa = GetComponent<PlayerAttack>();
+        if (pa != null) pa.LevelUp();
+    }
+
+    public bool CanLevelUpOrbit()
+    {
+        OrbitWeapon ow = GetComponent<OrbitWeapon>();
+        return ow != null && ow.CanLevelUp();
+    }
+
+    public void LevelUpOrbit()
+    {
+        OrbitWeapon ow = GetComponent<OrbitWeapon>();
+        if (ow != null) ow.LevelUp();
+    }
+
+    public bool CanLevelUpRockBomb()
+    {
+        RockBombWeapon rb = GetComponent<RockBombWeapon>();
+        return rb != null && rb.CanLevelUp();
+    }
+
+    public void LevelUpRockBomb()
+    {
+        RockBombWeapon rb = GetComponent<RockBombWeapon>();
+        if (rb != null) rb.LevelUp();
+    }
+
+    public bool CanLevelUpDustNova()
+    {
+        DustNova dn = GetComponent<DustNova>();
+        return dn != null && dn.CanLevelUp();
+    }
+
+    public void LevelUpDustNova()
+    {
+        DustNova dn = GetComponent<DustNova>();
+        if (dn != null) dn.LevelUp();
+    }
+
+    public bool CanLevelUpLightning()
+    {
+        LightningWeapon lw = GetComponent<LightningWeapon>();
+        return lw != null && lw.CanLevelUp();
+    }
+
+    public void LevelUpLightning()
+    {
+        LightningWeapon lw = GetComponent<LightningWeapon>();
+        if (lw != null) lw.LevelUp();
+    }
 }

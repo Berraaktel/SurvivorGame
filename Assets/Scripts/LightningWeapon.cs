@@ -17,6 +17,14 @@ public class LightningWeapon : MonoBehaviour
     public float chainRadius = 2.5f;
     public Color boltColor = new Color(0.65f, 0.85f, 1f);
 
+    // Evolution: max level + Miknatis (Magnet) turns this into "Simsek
+    // Firtinasi" - chains much further and to far more targets. Same
+    // shape as every other weapon here, see PlayerAttack for the full
+    // explanation.
+    public int level = 1;
+    public int maxLevel = 5;
+    public bool evolved = false;
+
     private float timer;
     private HashSet<EnemyHealth> hitBuffer = new HashSet<EnemyHealth>();
 
@@ -28,6 +36,18 @@ public class LightningWeapon : MonoBehaviour
         timer = 0f;
     }
 
+    public bool CanLevelUp()
+    {
+        return enabled && !evolved && level < maxLevel;
+    }
+
+    public void LevelUp()
+    {
+        level++;
+        damage += 1;
+        strikeInterval = Mathf.Max(0.9f, strikeInterval - 0.15f);
+    }
+
     void Update()
     {
         timer += Time.deltaTime;
@@ -36,6 +56,27 @@ public class LightningWeapon : MonoBehaviour
             timer = 0f;
             TryStrike();
         }
+        CheckEvolution();
+    }
+
+    void CheckEvolution()
+    {
+        if (evolved || level < maxLevel) return;
+
+        PlayerUpgrades pu = GetComponent<PlayerUpgrades>();
+        if (pu == null || !pu.HasMagnet()) return;
+
+        evolved = true;
+        damage += 1;
+        maxChainTargets += 3;
+        chainRadius += 1.5f;
+        range += 1f;
+        boltColor = new Color(1f, 0.9f, 0.5f);
+
+        if (EvolutionBanner.Instance != null) EvolutionBanner.Instance.Show(Localization.Get("evo_lightning"));
+        FxSpawner.Burst(transform.position, new Color(1f, 0.85f, 0.35f), 32, 3.2f, 0.65f, 0.22f);
+        if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.28f, 0.2f);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayLevelUp();
     }
 
     void TryStrike()

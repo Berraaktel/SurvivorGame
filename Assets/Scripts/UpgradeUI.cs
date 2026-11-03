@@ -37,19 +37,46 @@ public class UpgradeUI : MonoBehaviour
             new UpgradeDef { title = Localization.Get("upgrade_range_title"), description = Localization.Get("upgrade_range_desc"), apply = (u) => u.ApplyAttackRange(0.5f) },
         };
 
+        // Per-weapon "Guclendir" picks: these raise that one weapon's own
+        // level (separate from the shared ApplyDamage above) and are what
+        // actually drives each weapon toward its evolution once it also
+        // has the matching passive - see PlayerUpgrades.LevelUpX and each
+        // weapon's own CheckEvolution().
+        if (playerUpgrades != null && playerUpgrades.CanLevelUpKnife())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_knife_lvl_title"), description = Localization.Get("upgrade_knife_lvl_desc"), apply = (u) => u.LevelUpKnife() });
+        }
+
+        if (playerUpgrades != null && playerUpgrades.CanLevelUpOrbit())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_orbit_lvl_title"), description = Localization.Get("upgrade_orbit_lvl_desc"), apply = (u) => u.LevelUpOrbit() });
+        }
+
         if (playerUpgrades != null && !playerUpgrades.HasRockBomb())
         {
             list.Add(new UpgradeDef { title = Localization.Get("upgrade_rockbomb_title"), description = Localization.Get("upgrade_rockbomb_desc"), apply = (u) => u.UnlockRockBomb() });
+        }
+        else if (playerUpgrades != null && playerUpgrades.CanLevelUpRockBomb())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_rockbomb_lvl_title"), description = Localization.Get("upgrade_rockbomb_lvl_desc"), apply = (u) => u.LevelUpRockBomb() });
         }
 
         if (playerUpgrades != null && !playerUpgrades.HasDustNova())
         {
             list.Add(new UpgradeDef { title = Localization.Get("upgrade_dustnova_title"), description = Localization.Get("upgrade_dustnova_desc"), apply = (u) => u.UnlockDustNova() });
         }
+        else if (playerUpgrades != null && playerUpgrades.CanLevelUpDustNova())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_dustnova_lvl_title"), description = Localization.Get("upgrade_dustnova_lvl_desc"), apply = (u) => u.LevelUpDustNova() });
+        }
 
         if (playerUpgrades != null && !playerUpgrades.HasLightning())
         {
             list.Add(new UpgradeDef { title = Localization.Get("upgrade_lightning_title"), description = Localization.Get("upgrade_lightning_desc"), apply = (u) => u.UnlockLightning() });
+        }
+        else if (playerUpgrades != null && playerUpgrades.CanLevelUpLightning())
+        {
+            list.Add(new UpgradeDef { title = Localization.Get("upgrade_lightning_lvl_title"), description = Localization.Get("upgrade_lightning_lvl_desc"), apply = (u) => u.LevelUpLightning() });
         }
 
         if (playerUpgrades != null && !playerUpgrades.HasHealthRegen())

@@ -7,6 +7,14 @@ public class PlayerAttack : MonoBehaviour
     public int damage = 1;
     private float timer;
 
+    // Evolution: once this weapon hits maxLevel (via repeated "Bicagi
+    // Guclendir" level-up picks) AND the player also has Armor, it
+    // auto-evolves into "Bin Bicak" - same paired weapon+passive idea
+    // every weapon below reuses, just with Armor as the knife's catalyst.
+    public int level = 1;
+    public int maxLevel = 5;
+    public bool evolved = false;
+
     void Update()
     {
         timer += Time.deltaTime;
@@ -15,6 +23,35 @@ public class PlayerAttack : MonoBehaviour
             timer = 0f;
             TryAttack();
         }
+        CheckEvolution();
+    }
+
+    public bool CanLevelUp()
+    {
+        return enabled && !evolved && level < maxLevel;
+    }
+
+    public void LevelUp()
+    {
+        level++;
+        damage += 1;
+        attackInterval = Mathf.Max(0.35f, attackInterval - 0.05f);
+    }
+
+    void CheckEvolution()
+    {
+        if (evolved || level < maxLevel) return;
+
+        PlayerUpgrades pu = GetComponent<PlayerUpgrades>();
+        if (pu == null || !pu.HasArmor()) return;
+
+        evolved = true;
+        damage += 2;
+
+        if (EvolutionBanner.Instance != null) EvolutionBanner.Instance.Show(Localization.Get("evo_knife"));
+        FxSpawner.Burst(transform.position, new Color(1f, 0.92f, 0.45f), 32, 3.2f, 0.65f, 0.22f);
+        if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.28f, 0.2f);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayLevelUp();
     }
 
     void TryAttack()
@@ -46,7 +83,20 @@ public class PlayerAttack : MonoBehaviour
             // A little slack past attackRange so a throw aimed at a
             // target that then steps away still has a fair chance to land,
             // instead of stopping short and looking like it fizzled early.
-            ProjectilePool.Instance.SpawnProjectile(transform.position, direction, damage, attackRange + 1f, nearest.transform);
+            if (evolved)
+            {
+                // Evolved "Bin Bicak": the single homing throw becomes a
+                // 3-way spread so one attack threatens a cluster instead
+                // of only ever the nearest enemy - the outer two are aimed
+                // off to the sides and don't home onto nearest.transform.
+                ProjectilePool.Instance.SpawnProjectile(transform.position, direction, damage, attackRange + 1f, nearest.transform);
+                ProjectilePool.Instance.SpawnProjectile(transform.position, RotateDir(direction, 18f), damage, attackRange + 1f, null);
+                ProjectilePool.Instance.SpawnProjectile(transform.position, RotateDir(direction, -18f), damage, attackRange + 1f, null);
+            }
+            else
+            {
+                ProjectilePool.Instance.SpawnProjectile(transform.position, direction, damage, attackRange + 1f, nearest.transform);
+            }
             if (AudioManager.Instance != null) AudioManager.Instance.PlayThrow();
         }
         else
@@ -55,5 +105,13 @@ public class PlayerAttack : MonoBehaviour
             // so gameplay still works until "Build Ranged Weapon" is run.
             nearest.TakeDamage(damage);
         }
+    }
+
+    Vector2 RotateDir(Vector2 dir, float degrees)
+    {
+        float rad = degrees * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+        return new Vector2(dir.x * cos - dir.y * sin, dir.x * sin + dir.y * cos);
     }
 }

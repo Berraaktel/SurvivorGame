@@ -10,6 +10,11 @@ public class OrbitBlade : MonoBehaviour
     public float hitRadius = 0.3f;
     public float hitCooldown = 0.5f;
     [HideInInspector] public int damage = 1;
+    // Set by OrbitWeapon.Evolve() on every blade (old and newly spawned)
+    // once the ring evolves into "Olum Cemberi" - just swaps the hit FX to
+    // a brighter gold so the evolved ring visibly reads differently from
+    // the base cyan blades, no new sprite needed.
+    [HideInInspector] public bool evolved = false;
 
     private Dictionary<EnemyHealth, float> lastHitTime = new Dictionary<EnemyHealth, float>();
 
@@ -27,7 +32,8 @@ public class OrbitBlade : MonoBehaviour
             lastHitTime[enemy] = Time.time;
             enemy.TakeDamage(damage);
             if (AudioManager.Instance != null) AudioManager.Instance.PlayHit();
-            FxSpawner.Burst(transform.position, new Color(0.55f, 0.85f, 0.85f), 5, 1.8f, 0.18f, 0.09f);
+            Color tint = evolved ? new Color(1f, 0.85f, 0.35f) : new Color(0.55f, 0.85f, 0.85f);
+            FxSpawner.Burst(transform.position, tint, 5, 1.8f, 0.18f, 0.09f);
         }
     }
 }

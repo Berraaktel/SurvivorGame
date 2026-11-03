@@ -14,6 +14,14 @@ public class OrbitWeapon : MonoBehaviour
     public float rotationSpeed = 140f; // degrees per second, around the player
     public int damage = 1;
 
+    // Evolution: max level + Miknatis (Magnet) turns this into "Olum
+    // Cemberi" - two extra blades plus a bigger, faster ring. Same
+    // level/evolve shape as every other weapon here, see PlayerAttack for
+    // the first one with the full explanation.
+    public int level = 1;
+    public int maxLevel = 5;
+    public bool evolved = false;
+
     private List<Transform> orbiters = new List<Transform>();
     private float angle;
 
@@ -46,6 +54,18 @@ public class OrbitWeapon : MonoBehaviour
         }
     }
 
+    public bool CanLevelUp()
+    {
+        return enabled && !evolved && level < maxLevel;
+    }
+
+    public void LevelUp()
+    {
+        level++;
+        SetDamage(damage + 1);
+        rotationSpeed += 20f;
+    }
+
     void Update()
     {
         if (orbiters.Count == 0) return;
@@ -62,6 +82,47 @@ public class OrbitWeapon : MonoBehaviour
             // visibly whirls rather than just gliding around face-first.
             orbiters[i].Rotate(0f, 0f, rotationSpeed * 4f * Time.deltaTime);
         }
+
+        CheckEvolution();
+    }
+
+    void CheckEvolution()
+    {
+        if (evolved || level < maxLevel) return;
+
+        PlayerUpgrades pu = GetComponent<PlayerUpgrades>();
+        if (pu == null || !pu.HasMagnet()) return;
+
+        Evolve();
+    }
+
+    void Evolve()
+    {
+        evolved = true;
+        radius += 0.3f;
+        SetDamage(damage + 1);
+
+        for (int i = 0; i < 2; i++)
+        {
+            if (orbiterPrefab == null) break;
+            GameObject obj = Instantiate(orbiterPrefab);
+            OrbitBlade blade = obj.GetComponent<OrbitBlade>();
+            if (blade != null) blade.damage = damage;
+            orbiters.Add(obj.transform);
+        }
+        orbiterCount = orbiters.Count;
+
+        foreach (Transform t in orbiters)
+        {
+            if (t == null) continue;
+            OrbitBlade blade = t.GetComponent<OrbitBlade>();
+            if (blade != null) blade.evolved = true;
+        }
+
+        if (EvolutionBanner.Instance != null) EvolutionBanner.Instance.Show(Localization.Get("evo_orbit"));
+        FxSpawner.Burst(transform.position, new Color(1f, 0.85f, 0.35f), 32, 3.2f, 0.65f, 0.22f);
+        if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.28f, 0.2f);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayLevelUp();
     }
 
     void OnDestroy()
