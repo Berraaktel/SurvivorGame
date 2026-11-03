@@ -107,5 +107,11 @@ MonoBehaviour:
   speed: 6
   maxLifetime: 2
   hitRadius: 0.2
+  minArmDistance: 0.15
+  turnSpeed: 720
+  maxDistance: 6
   direction: {x: 1, y: 0}
   damage: 1
+  evolvedKnife: 0
+  evolvedSprite: {fileID: 21300000, guid: ba62216977864770a1f8c77963606d05, type: 3}
+  target: {fileID: 0}

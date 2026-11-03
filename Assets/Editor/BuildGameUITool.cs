@@ -189,6 +189,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton Assets/Sprites/Custom/knife_evolved.png olarak kaydedilen ozel (Berra'nin onayladigi) evrimlesmis bicak gorselini Projectile prefabina baglar - artik evrimlesmis atis sadece renk degil, gercekten farkli bir sprite gosterir. Once Build Ranged Weapon calismis olmali ve Assets/Sprites/Custom/knife_evolved.png proje icinde olmali.", MessageType.Info);
+        if (GUILayout.Button("Wire Evolved Knife Sprite"))
+        {
+            WireEvolvedKnifeSprite();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton bir pasif ekler: zamanla kendiliginden can yenilenmesi. Oyuncuda devre disi baslar - seviye atlama ekraninda acilir.", MessageType.Info);
         if (GUILayout.Button("Build Health Regen Passive"))
         {
@@ -1682,6 +1689,38 @@ public class BuildGameUITool : EditorWindow
         GameObject prefab = PrefabUtility.SaveAsPrefabAsset(temp, prefabPath);
         Object.DestroyImmediate(temp);
         return prefab;
+    }
+
+    void WireEvolvedKnifeSprite()
+    {
+        string prefabPath = "Assets/Prefabs/Projectile.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null)
+        {
+            Debug.LogWarning("Projectile prefabi bulunamadi - once Build Ranged Weapon calistirin.");
+            return;
+        }
+
+        string spritePath = "Assets/Sprites/Custom/knife_evolved.png";
+        Sprite evolvedSprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
+        if (evolvedSprite == null)
+        {
+            Debug.LogWarning("knife_evolved.png bulunamadi: " + spritePath + " - dosyanin projede oldugundan emin olun.");
+            return;
+        }
+
+        Projectile proj = prefab.GetComponent<Projectile>();
+        if (proj == null)
+        {
+            Debug.LogWarning("Projectile prefabinda Projectile bileseni yok.");
+            return;
+        }
+
+        proj.evolvedSprite = evolvedSprite;
+        EditorUtility.SetDirty(prefab);
+        PrefabUtility.SavePrefabAsset(prefab);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Evrimlesmis bicak sprite'i Projectile prefabina baglandi: " + spritePath);
     }
 
     Sprite LoadWeaponSprite(int index)

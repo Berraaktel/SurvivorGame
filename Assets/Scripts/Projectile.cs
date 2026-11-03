@@ -37,11 +37,24 @@ public class Projectile : MonoBehaviour
     [HideInInspector] public Vector2 direction = Vector2.right;
     [HideInInspector] public int damage = 1;
 
-    // Set by PlayerAttack when the evolved "Bin Bicak" fires - overrides
-    // the usual KnifeTiers tint with a bright gold and a slightly bigger
-    // sprite, so an evolved throw actually reads as different at a glance
-    // instead of only being "one more knife among three" at normal size.
+    // Set by PlayerAttack when the evolved "Bin Bicak" fires. Originally
+    // this only swapped in a gold tint + bigger scale on the same Kenney
+    // sprite, but that read as "same knife, slightly bigger" rather than a
+    // real evolution (per direct testing feedback). Now, when evolvedSprite
+    // is assigned (wired in BuildGameUITool's "Wire Evolved Knife Sprite"
+    // button), the projectile swaps to that hand-tuned sprite outright
+    // instead of just tinting the base one - a genuine silhouette/color
+    // change, not a recolor. Falls back to the old tint+scale behavior if
+    // evolvedSprite was never wired, so nothing breaks if the art is
+    // missing.
     [HideInInspector] public bool evolvedKnife = false;
+    public Sprite evolvedSprite;
+
+    // The sprite this projectile normally shows (the plain Kenney knife),
+    // cached once in Awake so OnEnable can always restore it when a throw
+    // ISN'T the evolved one, even after a previous throw swapped the
+    // sprite out.
+    private Sprite baseSprite;
 
     // The specific enemy this knife was aimed at. May die or despawn before
     // the knife arrives - in that case it just keeps flying straight in its
@@ -53,9 +66,16 @@ public class Projectile : MonoBehaviour
     private bool resolved;
     private SpriteRenderer sr;
 
+    // Drives the in-flight sparkle trail on evolved throws - see Update().
+    // Timer-based (not every-frame) so it reads as a handful of distinct
+    // glints along the flight path rather than a solid smear of particles.
+    private float sparkleTimer;
+    private const float SparkleInterval = 0.07f;
+
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+        if (sr != null) baseSprite = sr.sprite;
     }
 
     void OnEnable()
@@ -63,6 +83,7 @@ public class Projectile : MonoBehaviour
         spawnTime = Time.time;
         distanceTraveled = 0f;
         resolved = false;
+        sparkleTimer = 0f;
         // Re-applied on every throw (not just once) - tier can only change
         // from the Main Menu Shop between runs, but this keeps the knife
         // always showing whatever tier is actually owned without needing
@@ -70,9 +91,21 @@ public class Projectile : MonoBehaviour
         // outright so the evolution is visible regardless of tier.
         if (sr != null)
         {
-            sr.color = evolvedKnife ? new Color(1f, 0.85f, 0.25f) : KnifeTiers.GetTint();
+            if (evolvedKnife && evolvedSprite != null)
+            {
+                // Real custom sprite for the evolved throw - no tint needed,
+                // the art itself carries the gold/white evolved look.
+                sr.sprite = evolvedSprite;
+                sr.color = Color.white;
+                transform.localScale = Vector3.one;
+            }
+            else
+            {
+                sr.sprite = baseSprite;
+                sr.color = evolvedKnife ? new Color(1f, 0.85f, 0.25f) : KnifeTiers.GetTint();
+                transform.localScale = evolvedKnife ? new Vector3(1.4f, 1.4f, 1f) : Vector3.one;
+            }
         }
-        transform.localScale = evolvedKnife ? new Vector3(1.4f, 1.4f, 1f) : Vector3.one;
         ApplyRotation();
     }
 
@@ -103,6 +136,20 @@ public class Projectile : MonoBehaviour
         float step = speed * Time.deltaTime;
         transform.position += (Vector3)(direction * step);
         distanceTraveled += step;
+
+        // In-flight sparkle trail for the evolved throw - makes the glint
+        // on the custom sprite actually visible while it's moving, not
+        // just on the static art, per direct feedback ("firlatirken falan
+        // o isiltilari belli olacak sekilde efekt ekleyip bunu kullanalim").
+        if (evolvedKnife && evolvedSprite != null)
+        {
+            sparkleTimer += Time.deltaTime;
+            if (sparkleTimer >= SparkleInterval)
+            {
+                sparkleTimer = 0f;
+                FxSpawner.Burst(transform.position, new Color(1f, 0.97f, 0.78f), 3, 1.1f, 0.18f, 0.06f);
+            }
+        }
 
         bool armed = distanceTraveled >= minArmDistance;
         if (armed)
