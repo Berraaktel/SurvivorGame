@@ -1114,44 +1114,83 @@ public class BuildGameUITool : EditorWindow
 
     Image CreateHealthBar(Transform parent)
     {
+        GameObject bgGO;
         Transform existingBg = parent.Find("HealthBarBackground");
         if (existingBg != null)
         {
-            Transform existingFill = existingBg.Find("HealthBarFill");
-            if (existingFill != null)
-            {
-                Image existingImg = existingFill.GetComponent<Image>();
-                existingImg.sprite = GetOrCreateFlatSprite();
-                existingImg.type = Image.Type.Filled;
-                return existingImg;
-            }
+            bgGO = existingBg.gameObject;
+        }
+        else
+        {
+            bgGO = new GameObject("HealthBarBackground", typeof(RectTransform));
+            bgGO.transform.SetParent(parent, false);
+            RectTransform bgRect = bgGO.GetComponent<RectTransform>();
+            bgRect.anchorMin = new Vector2(0f, 1f);
+            bgRect.anchorMax = new Vector2(0f, 1f);
+            bgRect.pivot = new Vector2(0f, 1f);
+            bgRect.anchoredPosition = new Vector2(30f, -30f);
+            bgRect.sizeDelta = new Vector2(300f, 40f);
         }
 
-        GameObject bgGO = new GameObject("HealthBarBackground", typeof(RectTransform));
-        bgGO.transform.SetParent(parent, false);
-        Image bgImage = bgGO.AddComponent<Image>();
-        bgImage.color = new Color(0f, 0f, 0f, 0.6f);
-        RectTransform bgRect = bgGO.GetComponent<RectTransform>();
-        bgRect.anchorMin = new Vector2(0f, 1f);
-        bgRect.anchorMax = new Vector2(0f, 1f);
-        bgRect.pivot = new Vector2(0f, 1f);
-        bgRect.anchoredPosition = new Vector2(30f, -30f);
-        bgRect.sizeDelta = new Vector2(300f, 40f);
+        // Pixel-art bevelled wood frame (Berra'nin onayladigi HUD
+        // stiliyle), replacing the old flat semi-transparent rectangle -
+        // same desert palette as the main menu and the other panels.
+        Image bgImage = bgGO.GetComponent<Image>();
+        if (bgImage == null) bgImage = bgGO.AddComponent<Image>();
+        Sprite healthFrameSprite = LoadCustomSprite("health_bar_frame.png");
+        if (healthFrameSprite != null) bgImage.sprite = healthFrameSprite;
+        bgImage.color = Color.white;
 
-        GameObject fillGO = new GameObject("HealthBarFill", typeof(RectTransform));
-        fillGO.transform.SetParent(bgGO.transform, false);
-        Image fillImage = fillGO.AddComponent<Image>();
+        Transform fillTr = bgGO.transform.Find("HealthBarFill");
+        GameObject fillGO;
+        if (fillTr != null)
+        {
+            fillGO = fillTr.gameObject;
+        }
+        else
+        {
+            fillGO = new GameObject("HealthBarFill", typeof(RectTransform));
+            fillGO.transform.SetParent(bgGO.transform, false);
+        }
+        Image fillImage = fillGO.GetComponent<Image>();
+        if (fillImage == null) fillImage = fillGO.AddComponent<Image>();
         fillImage.sprite = GetOrCreateFlatSprite();
         fillImage.color = new Color(0.85f, 0.15f, 0.15f, 1f);
         fillImage.type = Image.Type.Filled;
         fillImage.fillMethod = Image.FillMethod.Horizontal;
         fillImage.fillOrigin = 0;
-        fillImage.fillAmount = 1f;
+        if (fillTr == null) fillImage.fillAmount = 1f;
         RectTransform fillRect = fillGO.GetComponent<RectTransform>();
         fillRect.anchorMin = Vector2.zero;
         fillRect.anchorMax = Vector2.one;
-        fillRect.offsetMin = new Vector2(4f, 4f);
-        fillRect.offsetMax = new Vector2(-4f, -4f);
+        fillRect.offsetMin = new Vector2(15f, 15f);
+        fillRect.offsetMax = new Vector2(-15f, -15f);
+
+        // Heart badge overlapping the bar's left edge - a separate Image
+        // (not baked into the frame) so it never gets stretched/cropped by
+        // the bar's own sizing.
+        Transform iconTr = bgGO.transform.Find("HealthBarIcon");
+        GameObject iconGO;
+        if (iconTr != null)
+        {
+            iconGO = iconTr.gameObject;
+        }
+        else
+        {
+            iconGO = new GameObject("HealthBarIcon", typeof(RectTransform));
+            iconGO.transform.SetParent(bgGO.transform, false);
+        }
+        Image iconImage = iconGO.GetComponent<Image>();
+        if (iconImage == null) iconImage = iconGO.AddComponent<Image>();
+        Sprite healthIconSprite = LoadCustomSprite("health_bar_icon.png");
+        if (healthIconSprite != null) iconImage.sprite = healthIconSprite;
+        iconImage.preserveAspect = true;
+        RectTransform iconRect = iconGO.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(48f, 48f);
+        iconRect.anchoredPosition = new Vector2(-6f, 0f);
 
         return fillImage;
     }
@@ -1570,63 +1609,104 @@ public class BuildGameUITool : EditorWindow
 
     void CreateXPBar(Transform parent, out Image fillImage, out Text levelText)
     {
+        GameObject bgGO;
         Transform existingBg = parent.Find("XPBarBackground");
         if (existingBg != null)
         {
-            Transform existingFill = existingBg.Find("XPBarFill");
-            fillImage = existingFill != null ? existingFill.GetComponent<Image>() : null;
-            if (fillImage != null)
-            {
-                fillImage.sprite = GetOrCreateFlatSprite();
-                fillImage.type = Image.Type.Filled;
-            }
-
-            Transform existingLevel = parent.Find("LevelText");
-            levelText = existingLevel != null ? existingLevel.GetComponent<Text>() : null;
-            MakeReadable(levelText, 24, 1.5f);
-            return;
+            bgGO = existingBg.gameObject;
+        }
+        else
+        {
+            bgGO = new GameObject("XPBarBackground", typeof(RectTransform));
+            bgGO.transform.SetParent(parent, false);
+            RectTransform bgRect = bgGO.GetComponent<RectTransform>();
+            bgRect.anchorMin = new Vector2(0f, 1f);
+            bgRect.anchorMax = new Vector2(0f, 1f);
+            bgRect.pivot = new Vector2(0f, 1f);
+            bgRect.anchoredPosition = new Vector2(30f, -80f);
+            bgRect.sizeDelta = new Vector2(300f, 20f);
         }
 
-        GameObject bgGO = new GameObject("XPBarBackground", typeof(RectTransform));
-        bgGO.transform.SetParent(parent, false);
-        Image bgImage = bgGO.AddComponent<Image>();
-        bgImage.color = new Color(0f, 0f, 0f, 0.6f);
-        RectTransform bgRect = bgGO.GetComponent<RectTransform>();
-        bgRect.anchorMin = new Vector2(0f, 1f);
-        bgRect.anchorMax = new Vector2(0f, 1f);
-        bgRect.pivot = new Vector2(0f, 1f);
-        bgRect.anchoredPosition = new Vector2(30f, -80f);
-        bgRect.sizeDelta = new Vector2(300f, 20f);
+        // Same pixel-art wood frame as the health bar, with a diamond
+        // badge instead of a heart - matches the purple XPOrb the player
+        // actually picks up (tile_0039), not a generic star/gem shape.
+        Image bgImage = bgGO.GetComponent<Image>();
+        if (bgImage == null) bgImage = bgGO.AddComponent<Image>();
+        Sprite xpFrameSprite = LoadCustomSprite("xp_bar_frame.png");
+        if (xpFrameSprite != null) bgImage.sprite = xpFrameSprite;
+        bgImage.color = Color.white;
 
-        GameObject fillGO = new GameObject("XPBarFill", typeof(RectTransform));
-        fillGO.transform.SetParent(bgGO.transform, false);
-        Image fill = fillGO.AddComponent<Image>();
+        Transform fillTr = bgGO.transform.Find("XPBarFill");
+        GameObject fillGO;
+        if (fillTr != null)
+        {
+            fillGO = fillTr.gameObject;
+        }
+        else
+        {
+            fillGO = new GameObject("XPBarFill", typeof(RectTransform));
+            fillGO.transform.SetParent(bgGO.transform, false);
+        }
+        Image fill = fillGO.GetComponent<Image>();
+        if (fill == null) fill = fillGO.AddComponent<Image>();
         fill.sprite = GetOrCreateFlatSprite();
-        fill.color = new Color(0.55f, 0.25f, 0.85f, 1f);
+        fill.color = new Color(1f, 0.867f, 0.431f, 1f);
         fill.type = Image.Type.Filled;
         fill.fillMethod = Image.FillMethod.Horizontal;
         fill.fillOrigin = 0;
-        fill.fillAmount = 0f;
+        if (fillTr == null) fill.fillAmount = 0f;
         RectTransform fillRect = fillGO.GetComponent<RectTransform>();
         fillRect.anchorMin = Vector2.zero;
         fillRect.anchorMax = Vector2.one;
-        fillRect.offsetMin = new Vector2(3f, 3f);
-        fillRect.offsetMax = new Vector2(-3f, -3f);
+        fillRect.offsetMin = new Vector2(9f, 9f);
+        fillRect.offsetMax = new Vector2(-9f, -9f);
 
-        GameObject textGO = new GameObject("LevelText", typeof(RectTransform));
-        textGO.transform.SetParent(parent, false);
-        Text text = textGO.AddComponent<Text>();
-        text.text = "Lv. 1";
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        text.alignment = TextAnchor.MiddleLeft;
-        text.color = Color.white;
+        Transform iconTr = bgGO.transform.Find("XPBarIcon");
+        GameObject iconGO;
+        if (iconTr != null)
+        {
+            iconGO = iconTr.gameObject;
+        }
+        else
+        {
+            iconGO = new GameObject("XPBarIcon", typeof(RectTransform));
+            iconGO.transform.SetParent(bgGO.transform, false);
+        }
+        Image iconImage = iconGO.GetComponent<Image>();
+        if (iconImage == null) iconImage = iconGO.AddComponent<Image>();
+        Sprite xpIconSprite = LoadCustomSprite("xp_bar_icon.png");
+        if (xpIconSprite != null) iconImage.sprite = xpIconSprite;
+        iconImage.preserveAspect = true;
+        RectTransform iconRect = iconGO.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0f, 0.5f);
+        iconRect.anchorMax = new Vector2(0f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(32f, 32f);
+        iconRect.anchoredPosition = new Vector2(-4f, 0f);
+
+        Transform existingLevel = parent.Find("LevelText");
+        Text text;
+        if (existingLevel != null)
+        {
+            text = existingLevel.GetComponent<Text>();
+        }
+        else
+        {
+            GameObject textGO = new GameObject("LevelText", typeof(RectTransform));
+            textGO.transform.SetParent(parent, false);
+            text = textGO.AddComponent<Text>();
+            text.text = "Lv. 1";
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.alignment = TextAnchor.MiddleLeft;
+            text.color = Color.white;
+            RectTransform textRect = textGO.GetComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0f, 1f);
+            textRect.anchorMax = new Vector2(0f, 1f);
+            textRect.pivot = new Vector2(0f, 1f);
+            textRect.anchoredPosition = new Vector2(340f, -83f);
+            textRect.sizeDelta = new Vector2(120f, 28f);
+        }
         MakeReadable(text, 24, 1.5f);
-        RectTransform textRect = textGO.GetComponent<RectTransform>();
-        textRect.anchorMin = new Vector2(0f, 1f);
-        textRect.anchorMax = new Vector2(0f, 1f);
-        textRect.pivot = new Vector2(0f, 1f);
-        textRect.anchoredPosition = new Vector2(340f, -83f);
-        textRect.sizeDelta = new Vector2(120f, 28f);
 
         fillImage = fill;
         levelText = text;
