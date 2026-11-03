@@ -154,7 +154,7 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
-        EditorGUILayout.HelpBox("Bu buton oyuncunun elinde surekli gorunen bir bicak ekler (atilan projectile'lardan ayri) - bicak seviye atlandikca Assets/Sprites/Custom/held_knife_lvl2-4.png ve knife_evolved.png arasinda kademeli olarak degisir, boylece yukseltme atislar cok hizli gectigi icin fark edilmese bile karakterin elinde her an gorunur. Once Build Ranged Weapon ve Build Player Animation calismis olmali.", MessageType.Info);
+        EditorGUILayout.HelpBox("Bu buton oyuncunun elinde surekli gorunen bir bicak ekler (atilan projectile'lardan ayri) - bicak seviye atlandikca Assets/Sprites/Custom/held_knife_lvl1-5.png arasinda kademeli olarak degisir, boylece yukseltme atislar cok hizli gectigi icin fark edilmese bile karakterin elinde her an gorunur. Once Build Ranged Weapon ve Build Player Animation calismis olmali.", MessageType.Info);
         if (GUILayout.Button("Build Held Knife Visual"))
         {
             BuildHeldKnifeVisual();
@@ -1671,6 +1671,26 @@ public class BuildGameUITool : EditorWindow
 
         EnsureProjectilePool(projectilePrefab);
 
+        // Knife reach tuning lives here (set through the Editor, not a
+        // direct scene-file edit) because a raw YAML edit to player.unity
+        // only sticks if Unity never re-serializes the scene from memory
+        // before the change is observed - entering/exiting Play Mode
+        // snapshots and restores the scene's pre-play in-memory state, so
+        // an external disk edit made right before a test run can silently
+        // get reverted the moment Play Mode exits. Direct feedback ("hala
+        // etraftan cok uzaktayken bazi atislar oluyor") asked for a
+        // shorter range than the original 3.
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            PlayerAttack attack = playerObj.GetComponent<PlayerAttack>();
+            if (attack != null)
+            {
+                attack.attackRange = 2.2f;
+                EditorUtility.SetDirty(attack);
+            }
+        }
+
         AssetDatabase.SaveAssets();
         Debug.Log("Menzilli silah kuruldu: oyuncu artik bicak firlatiyor.");
         SaveScene();
@@ -1720,15 +1740,25 @@ public class BuildGameUITool : EditorWindow
             knifeSR.sortingOrder = visualSR.sortingOrder + 1;
         }
 
-        Sprite lvl1 = LoadWeaponSprite(8);
+        // Each of these 5 is tight-cropped to its own actual art (no
+        // dead transparent canvas padding) and generated from the SAME
+        // base/evolved pair the thrown knife uses - level 1-2 stay close
+        // to the plain knife's real proportions (tile_0008 itself is a
+        // tall/narrow crop, not a full square), with the fan-blades and
+        // gold color only fading in from level 3 onward. Earlier this
+        // loaded the full 24x24 tile_0008/knife_evolved canvases directly,
+        // which made the held knife suddenly render far wider/squarer the
+        // moment it leveled up - read as the knife "lying flat"
+        // (direct feedback: "bicak bir sekilde yataydirsin").
+        Sprite lvl1 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl1.png");
         Sprite lvl2 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl2.png");
         Sprite lvl3 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl3.png");
         Sprite lvl4 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl4.png");
-        Sprite lvl5 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/knife_evolved.png");
+        Sprite lvl5 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl5.png");
 
         if (lvl1 == null || lvl2 == null || lvl3 == null || lvl4 == null || lvl5 == null)
         {
-            Debug.LogWarning("Elde tutulan bicak gorsellerinden biri bulunamadi - Assets/Sprites/Custom icindeki held_knife_lvl2/3/4.png ve knife_evolved.png dosyalarinin proje icinde oldugundan emin olun.");
+            Debug.LogWarning("Elde tutulan bicak gorsellerinden biri bulunamadi - Assets/Sprites/Custom icindeki held_knife_lvl1-5.png dosyalarinin proje icinde oldugundan emin olun.");
         }
 
         Sprite[] levelSprites = { lvl1, lvl2, lvl3, lvl4, lvl5 };

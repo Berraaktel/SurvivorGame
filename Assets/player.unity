@@ -18798,7 +18798,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -9191263657056127176, guid: c5cc50ce51a6141af8b4940859cb3095, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5e81f0692cc941259e0d8f70fd2111a5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -25535,7 +25535,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b68885c0a06f459fa4f74b6182fd53f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
-  attackRange: 3
+  attackRange: 2.2
   attackInterval: 1
   damage: 1
   level: 1
@@ -25543,11 +25543,11 @@ MonoBehaviour:
   evolved: 0
   heldKnifeRenderer: {fileID: 1238606623}
   heldKnifeSprites:
-  - {fileID: -9191263657056127176, guid: c5cc50ce51a6141af8b4940859cb3095, type: 3}
+  - {fileID: 21300000, guid: 5e81f0692cc941259e0d8f70fd2111a5, type: 3}
   - {fileID: 21300000, guid: 8fd1f7fb21504bc0ab5b57b7ab751139, type: 3}
   - {fileID: 21300000, guid: ff28471f339342b589b6361519e78f41, type: 3}
   - {fileID: 21300000, guid: fb00d5d94582494ca7380a7106d02654, type: 3}
-  - {fileID: 21300000, guid: ba62216977864770a1f8c77963606d05, type: 3}
+  - {fileID: 21300000, guid: 5022fffdcb804e879378f02a40adb47d, type: 3}
 --- !u!114 &2099848707
 MonoBehaviour:
   m_ObjectHideFlags: 0
