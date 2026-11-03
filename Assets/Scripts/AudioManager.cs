@@ -27,6 +27,20 @@ public class AudioManager : MonoBehaviour
     private AudioSource sfxSource;
     private AudioSource musicSource;
 
+    // Dedicated source for the evolved knife's hit ("Bin Bicak") - no new
+    // sound asset is added, it reuses hitClip, but at a permanently lower
+    // pitch on its own AudioSource. A pitch set on sfxSource itself would
+    // bleed live onto whatever hitClip is already playing through it the
+    // moment it's changed back (AudioSource.pitch affects every sound
+    // currently mixing through that source, not just the next
+    // PlayOneShot call), so a second source avoids fighting over one
+    // pitch value when a normal hit and an evolved hit land in the same
+    // frame. The lower pitch reads as a heavier/more powerful impact -
+    // direct feedback asked for the evolved knife's hit to sound
+    // noticeably different, not just look different.
+    private AudioSource sfxSourceEvolved;
+    private const float EvolvedHitPitch = 0.72f;
+
     void Awake()
     {
         // Keep exactly one AudioManager alive - BuildAudioSystem() is
@@ -45,6 +59,10 @@ public class AudioManager : MonoBehaviour
 
         sfxSource = gameObject.AddComponent<AudioSource>();
         sfxSource.playOnAwake = false;
+
+        sfxSourceEvolved = gameObject.AddComponent<AudioSource>();
+        sfxSourceEvolved.playOnAwake = false;
+        sfxSourceEvolved.pitch = EvolvedHitPitch;
 
         musicSource = gameObject.AddComponent<AudioSource>();
         musicSource.playOnAwake = false;
@@ -70,6 +88,13 @@ public class AudioManager : MonoBehaviour
     public void PlayGameOver() { PlayOneShot(gameOverClip); }
     public void PlayClick() { PlayOneShot(clickClip); }
     public void PlayPickup() { PlayOneShot(pickupClip); }
+
+    // Same clip as PlayHit, just through the pitched-down source - see
+    // sfxSourceEvolved above for why this needs its own AudioSource.
+    public void PlayEvolvedHit()
+    {
+        if (hitClip != null && sfxSourceEvolved != null) sfxSourceEvolved.PlayOneShot(hitClip, sfxVolume);
+    }
 
     // Called from the settings sliders. Applied immediately and saved so
     // it persists across play sessions/builds.

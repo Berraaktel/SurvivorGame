@@ -161,7 +161,16 @@ public class Projectile : MonoBehaviour
                 if (enemy != null)
                 {
                     enemy.TakeDamage(damage);
-                    if (AudioManager.Instance != null) AudioManager.Instance.PlayHit();
+                    // Evolved Bin Bicak throws get their own (pitched-down,
+                    // heavier-sounding) hit cue instead of the normal one -
+                    // the evolved knife already looks different, direct
+                    // feedback asked for the hit to also sound different so
+                    // the upgrade reads through audio too, not just visuals.
+                    if (AudioManager.Instance != null)
+                    {
+                        if (evolvedKnife) AudioManager.Instance.PlayEvolvedHit();
+                        else AudioManager.Instance.PlayHit();
+                    }
                     FxSpawner.Burst(transform.position, new Color(0.95f, 0.88f, 0.6f), 6, 2f, 0.22f, 0.10f);
                     if (CameraFollow.Instance != null) CameraFollow.Instance.Shake(0.06f, 0.05f);
                     Deactivate();
