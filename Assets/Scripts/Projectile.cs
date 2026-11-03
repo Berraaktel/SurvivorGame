@@ -37,6 +37,12 @@ public class Projectile : MonoBehaviour
     [HideInInspector] public Vector2 direction = Vector2.right;
     [HideInInspector] public int damage = 1;
 
+    // Set by PlayerAttack when the evolved "Bin Bicak" fires - overrides
+    // the usual KnifeTiers tint with a bright gold and a slightly bigger
+    // sprite, so an evolved throw actually reads as different at a glance
+    // instead of only being "one more knife among three" at normal size.
+    [HideInInspector] public bool evolvedKnife = false;
+
     // The specific enemy this knife was aimed at. May die or despawn before
     // the knife arrives - in that case it just keeps flying straight in its
     // last known direction instead of erroring out.
@@ -60,8 +66,13 @@ public class Projectile : MonoBehaviour
         // Re-applied on every throw (not just once) - tier can only change
         // from the Main Menu Shop between runs, but this keeps the knife
         // always showing whatever tier is actually owned without needing
-        // a separate "weapon changed" event.
-        if (sr != null) sr.color = KnifeTiers.GetTint();
+        // a separate "weapon changed" event. evolvedKnife overrides it
+        // outright so the evolution is visible regardless of tier.
+        if (sr != null)
+        {
+            sr.color = evolvedKnife ? new Color(1f, 0.85f, 0.25f) : KnifeTiers.GetTint();
+        }
+        transform.localScale = evolvedKnife ? new Vector3(1.4f, 1.4f, 1f) : Vector3.one;
         ApplyRotation();
     }
 
@@ -131,6 +142,7 @@ public class Projectile : MonoBehaviour
     {
         resolved = true;
         target = null;
+        evolvedKnife = false;
         gameObject.SetActive(false);
     }
 }

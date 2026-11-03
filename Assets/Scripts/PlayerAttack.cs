@@ -65,6 +65,11 @@ public class PlayerAttack : MonoBehaviour
         {
             EnemyHealth enemy = hit.GetComponent<EnemyHealth>();
             if (enemy == null) continue;
+            // Range can grow a lot over a run (level-up picks keep adding
+            // to it) - without this, a throw aimed at something completely
+            // off-screen would land and kill it with no visible cause, so
+            // only enemies the player can actually see are valid targets.
+            if (CameraFollow.Instance != null && !CameraFollow.Instance.IsOnScreen(hit.transform.position)) continue;
 
             float dist = (hit.transform.position - transform.position).sqrMagnitude;
             if (dist < nearestDist)
@@ -89,9 +94,11 @@ public class PlayerAttack : MonoBehaviour
                 // 3-way spread so one attack threatens a cluster instead
                 // of only ever the nearest enemy - the outer two are aimed
                 // off to the sides and don't home onto nearest.transform.
-                ProjectilePool.Instance.SpawnProjectile(transform.position, direction, damage, attackRange + 1f, nearest.transform);
-                ProjectilePool.Instance.SpawnProjectile(transform.position, RotateDir(direction, 18f), damage, attackRange + 1f, null);
-                ProjectilePool.Instance.SpawnProjectile(transform.position, RotateDir(direction, -18f), damage, attackRange + 1f, null);
+                // evolvedKnife=true on every one of the three so all of
+                // them show the bright evolved tint/size, not just a mix.
+                ProjectilePool.Instance.SpawnProjectile(transform.position, direction, damage, attackRange + 1f, nearest.transform, true);
+                ProjectilePool.Instance.SpawnProjectile(transform.position, RotateDir(direction, 18f), damage, attackRange + 1f, null, true);
+                ProjectilePool.Instance.SpawnProjectile(transform.position, RotateDir(direction, -18f), damage, attackRange + 1f, null, true);
             }
             else
             {

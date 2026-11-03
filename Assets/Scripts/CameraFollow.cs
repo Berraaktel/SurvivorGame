@@ -60,4 +60,22 @@ public class CameraFollow : MonoBehaviour
         shakeTimeRemaining = duration;
         shakeMagnitude = magnitude;
     }
+
+    // Used by every ranged/chaining weapon (PlayerAttack, RockBombWeapon,
+    // LightningWeapon, DustNova) to stop auto-targeting from reaching past
+    // what the player can actually see - a high range stat used to let the
+    // knife/bomb/chain hit and kill enemies completely off-screen, which
+    // just read as enemies dying for no visible reason. margin shrinks the
+    // usable viewport slightly so a target doesn't count as "visible"
+    // while still clipped right at the screen edge.
+    public bool IsOnScreen(Vector3 worldPos, float margin = 0.05f)
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return true;
+
+        Vector3 viewportPoint = cam.WorldToViewportPoint(worldPos);
+        return viewportPoint.z > 0f
+            && viewportPoint.x > margin && viewportPoint.x < 1f - margin
+            && viewportPoint.y > margin && viewportPoint.y < 1f - margin;
+    }
 }

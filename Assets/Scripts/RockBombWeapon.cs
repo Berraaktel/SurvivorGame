@@ -81,6 +81,10 @@ public class RockBombWeapon : MonoBehaviour
         foreach (Collider2D hit in hits)
         {
             if (hit.GetComponent<EnemyHealth>() == null) continue;
+            // Same reasoning as PlayerAttack.TryAttack - throwRange can
+            // grow past what is actually visible, so only ever target
+            // enemies the player can see land and explode.
+            if (CameraFollow.Instance != null && !CameraFollow.Instance.IsOnScreen(hit.transform.position)) continue;
 
             float dist = (hit.transform.position - transform.position).sqrMagnitude;
             if (dist < nearestDist)

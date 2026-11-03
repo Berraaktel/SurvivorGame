@@ -23,7 +23,7 @@ public class ProjectilePool : MonoBehaviour
         }
     }
 
-    public void SpawnProjectile(Vector3 position, Vector2 direction, int damage, float maxDistance, Transform target)
+    public void SpawnProjectile(Vector3 position, Vector2 direction, int damage, float maxDistance, Transform target, bool evolvedKnife = false)
     {
         if (projectilePrefab == null) return;
 
@@ -37,6 +37,7 @@ public class ProjectilePool : MonoBehaviour
             proj.damage = damage;
             proj.maxDistance = maxDistance;
             proj.target = target;
+            proj.evolvedKnife = evolvedKnife;
         }
 
         obj.SetActive(true);

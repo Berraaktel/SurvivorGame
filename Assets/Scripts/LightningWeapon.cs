@@ -130,6 +130,10 @@ public class LightningWeapon : MonoBehaviour
             EnemyHealth enemy = hits[i].GetComponent<EnemyHealth>();
             if (enemy == null) continue;
             if (exclude != null && exclude.Contains(enemy)) continue;
+            // Same on-screen rule as the other weapons - a chain hop can
+            // easily reach past the edge of the screen even when the
+            // strike that started it was aimed at something visible.
+            if (CameraFollow.Instance != null && !CameraFollow.Instance.IsOnScreen(hits[i].transform.position)) continue;
 
             float dist = (hits[i].transform.position - from).sqrMagnitude;
             if (dist < nearestDist)

@@ -76,6 +76,10 @@ public class DustNova : MonoBehaviour
         {
             EnemyHealth enemy = hits[i].GetComponent<EnemyHealth>();
             if (enemy == null) continue;
+            // Same on-screen rule as the other weapons - radius can grow
+            // past what the camera actually shows, so an enemy has to be
+            // visible to be a valid hit.
+            if (CameraFollow.Instance != null && !CameraFollow.Instance.IsOnScreen(hits[i].transform.position)) continue;
 
             enemy.TakeDamage(damage);
             hitAny = true;

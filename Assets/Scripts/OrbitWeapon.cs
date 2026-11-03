@@ -59,11 +59,33 @@ public class OrbitWeapon : MonoBehaviour
         return enabled && !evolved && level < maxLevel;
     }
 
+    // Leveling this weapon used to only speed it up, which barely read as
+    // a change at all - now every level also adds one more blade to the
+    // ring (2 blades at level 1 -> 4 by level 3, matching how the base
+    // game's own weapons visibly grow), plus a little extra room (radius)
+    // so the growing ring does not start overlapping itself.
     public void LevelUp()
     {
         level++;
         SetDamage(damage + 1);
-        rotationSpeed += 20f;
+        rotationSpeed += 15f;
+        radius += 0.1f;
+        AddBlade();
+    }
+
+    void AddBlade()
+    {
+        if (orbiterPrefab == null) return;
+
+        GameObject obj = Instantiate(orbiterPrefab);
+        OrbitBlade blade = obj.GetComponent<OrbitBlade>();
+        if (blade != null)
+        {
+            blade.damage = damage;
+            blade.evolved = evolved;
+        }
+        orbiters.Add(obj.transform);
+        orbiterCount = orbiters.Count;
     }
 
     void Update()
@@ -102,15 +124,8 @@ public class OrbitWeapon : MonoBehaviour
         radius += 0.3f;
         SetDamage(damage + 1);
 
-        for (int i = 0; i < 2; i++)
-        {
-            if (orbiterPrefab == null) break;
-            GameObject obj = Instantiate(orbiterPrefab);
-            OrbitBlade blade = obj.GetComponent<OrbitBlade>();
-            if (blade != null) blade.damage = damage;
-            orbiters.Add(obj.transform);
-        }
-        orbiterCount = orbiters.Count;
+        AddBlade();
+        AddBlade();
 
         foreach (Transform t in orbiters)
         {
