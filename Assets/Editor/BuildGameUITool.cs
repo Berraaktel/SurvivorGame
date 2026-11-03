@@ -2328,127 +2328,118 @@ public class BuildGameUITool : EditorWindow
         EnsureEventSystem();
         Canvas canvas = FindOrCreateCanvas();
 
-        Text title, playText, shopText, quitText, bestTimeText;
-        GameObject panel = CreateMainMenuPanel(canvas.transform, out title, out playText, out shopText, out quitText, out bestTimeText);
+        Text bestTimeText;
+        Button playBtn, shopBtn;
+        GameObject panel = CreateMainMenuPanel(canvas.transform, out bestTimeText, out playBtn, out shopBtn);
 
         MainMenuUI menu = canvas.GetComponent<MainMenuUI>();
         if (menu == null) menu = canvas.gameObject.AddComponent<MainMenuUI>();
         menu.panel = panel;
-        menu.titleText = title;
-        menu.playButtonText = playText;
-        menu.shopButtonText = shopText;
-        menu.quitButtonText = quitText;
+        // Title/Play/Shop labels are now baked into Berra's approved menu
+        // artwork itself (menu_background.png / menu_button_*.png), not
+        // separate Text components, so these stay unassigned - MainMenuUI
+        // already null-checks each one before touching it.
+        menu.titleText = null;
+        menu.playButtonText = null;
+        menu.shopButtonText = null;
         menu.bestTimeText = bestTimeText;
 
         EditorUtility.SetDirty(canvas.gameObject);
-        Debug.Log("Ana menu kuruldu (Oyna / Cikis).");
+        Debug.Log("Ana menu kuruldu (Berra'nin onayladigi cizim stiliyle, Cikis butonu olmadan).");
         SaveScene();
     }
 
-    GameObject CreateMainMenuPanel(Transform parent, out Text title, out Text playText, out Text shopText, out Text quitText, out Text bestTimeText)
+    GameObject CreateMainMenuPanel(Transform parent, out Text bestTimeText, out Button playBtn, out Button shopBtn)
     {
-        Font builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        // Desert/pixel palette - warm sand + rust + a near-black brown for
-        // the chunky pixel-style borders (two flat-color rects nested
-        // inside each other, bigger one behind, is the cheap way to fake a
-        // pixel-art bordered panel/button without needing a 9-sliced
-        // texture asset).
-        Color borderColor = new Color(0.18f, 0.11f, 0.06f, 1f);
-        Color backdropColor = new Color(0.16f, 0.10f, 0.06f, 0.9f);
-        Color sandColor = new Color(0.86f, 0.66f, 0.38f, 1f);
-        Color rustColor = new Color(0.76f, 0.38f, 0.16f, 1f);
-        Color oliveColor = new Color(0.46f, 0.38f, 0.22f, 1f);
-        Color slateMenuColor = new Color(0.34f, 0.40f, 0.42f, 1f);
-
         Transform existingOld = parent.Find("MainMenuPanel");
         if (existingOld != null) Object.DestroyImmediate(existingOld.gameObject);
 
-        // Full-screen dark backdrop so the desert menu frame pops against
-        // whatever is behind it.
         GameObject panelGO = new GameObject("MainMenuPanel", typeof(RectTransform));
         panelGO.transform.SetParent(parent, false);
         panelGO.transform.SetAsLastSibling();
-        Image panelImage = panelGO.AddComponent<Image>();
-        panelImage.color = backdropColor;
         RectTransform panelRect = panelGO.GetComponent<RectTransform>();
         panelRect.anchorMin = Vector2.zero;
         panelRect.anchorMax = Vector2.one;
         panelRect.offsetMin = Vector2.zero;
         panelRect.offsetMax = Vector2.zero;
 
-        // The actual bordered "frame" - dark border rect with a smaller
-        // sand-colored fill inset inside it.
-        GameObject frameGO = new GameObject("MenuFrame", typeof(RectTransform));
-        frameGO.transform.SetParent(panelGO.transform, false);
-        Image frameBorder = frameGO.AddComponent<Image>();
-        frameBorder.color = borderColor;
-        RectTransform frameRect = frameGO.GetComponent<RectTransform>();
-        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
-        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
-        frameRect.pivot = new Vector2(0.5f, 0.5f);
-        frameRect.sizeDelta = new Vector2(680f, 560f);
-        frameRect.anchoredPosition = Vector2.zero;
+        // Berra's approved hand-drawn-style desert menu artwork (desert
+        // dusk scene + hanging wooden title sign, both baked into one
+        // image) replaces the old flat-color rectangle frame entirely.
+        // Stretches to fill the screen at any aspect ratio - the sign
+        // sits at a fixed relative position within the image so it stays
+        // correctly placed regardless of stretch.
+        Sprite bgSprite = LoadCustomSprite("menu_background.png");
+        GameObject bgGO = new GameObject("Background", typeof(RectTransform));
+        bgGO.transform.SetParent(panelGO.transform, false);
+        Image bgImg = bgGO.AddComponent<Image>();
+        bgImg.sprite = bgSprite;
+        bgImg.raycastTarget = false;
+        RectTransform bgRect = bgGO.GetComponent<RectTransform>();
+        bgRect.anchorMin = Vector2.zero;
+        bgRect.anchorMax = Vector2.one;
+        bgRect.offsetMin = Vector2.zero;
+        bgRect.offsetMax = Vector2.zero;
 
-        GameObject frameFillGO = new GameObject("Fill", typeof(RectTransform));
-        frameFillGO.transform.SetParent(frameGO.transform, false);
-        Image frameFill = frameFillGO.AddComponent<Image>();
-        frameFill.color = sandColor;
-        RectTransform frameFillRect = frameFillGO.GetComponent<RectTransform>();
-        frameFillRect.anchorMin = Vector2.zero;
-        frameFillRect.anchorMax = Vector2.one;
-        frameFillRect.offsetMin = new Vector2(14f, 14f);
-        frameFillRect.offsetMax = new Vector2(-14f, -14f);
+        // Each button's own art (label + icon already baked in) IS the
+        // sprite - still a real Button/Image underneath so Unity's
+        // built-in hover/press tint and MainMenuUI's name-based listener
+        // wiring (PlayButton/ShopButton) keep working unchanged.
+        Sprite oynaSprite = LoadCustomSprite("menu_button_oyna.png");
+        Sprite magazaSprite = LoadCustomSprite("menu_button_magaza.png");
 
-        GameObject titleGO = new GameObject("TitleText", typeof(RectTransform));
-        titleGO.transform.SetParent(frameGO.transform, false);
-        Text titleTxt = titleGO.AddComponent<Text>();
-        titleTxt.text = "SURVIVORGAME";
-        titleTxt.font = builtinFont;
-        titleTxt.alignment = TextAnchor.MiddleCenter;
-        titleTxt.color = Color.white;
-        MakeReadable(titleTxt, 56, 2.5f);
-        RectTransform titleRect = titleGO.GetComponent<RectTransform>();
-        titleRect.anchorMin = new Vector2(0.5f, 0.82f);
-        titleRect.anchorMax = new Vector2(0.5f, 0.82f);
-        titleRect.pivot = new Vector2(0.5f, 0.5f);
-        titleRect.sizeDelta = new Vector2(620f, 120f);
-        titleRect.anchoredPosition = Vector2.zero;
+        CreateImageButton(panelGO.transform, "PlayButton", oynaSprite, 0.558f, 420f, out playBtn);
+        CreateImageButton(panelGO.transform, "ShopButton", magazaSprite, 0.382f, 420f, out shopBtn);
 
-        Sprite cactusSprite = LoadTileSprite(63);
-        CreateDecorSprite(frameGO.transform, "CactusLeft", new Vector2(0.5f, 0.92f), new Vector2(-250f, 0f), new Vector2(52f, 52f), cactusSprite);
-        CreateDecorSprite(frameGO.transform, "CactusRight", new Vector2(0.5f, 0.92f), new Vector2(250f, 0f), new Vector2(52f, 52f), cactusSprite);
+        // Cikis (exit) is intentionally not on this screen anymore - on
+        // mobile the player just backgrounds/closes the app, so a
+        // dedicated quit button here was redundant (direct feedback:
+        // "cikisa gerek yok burada, direkt ekrani kaydirip cikabilir").
+        // The pause menu's own Cikis option (ESC during play) is untouched.
 
-        Sprite rockSprite = LoadTileSprite(76);
-        CreateDecorSprite(frameGO.transform, "RockLeft", new Vector2(0f, 0f), new Vector2(34f, 34f), new Vector2(54f, 54f), rockSprite);
-        CreateDecorSprite(frameGO.transform, "RockRight", new Vector2(1f, 0f), new Vector2(-34f, 34f), new Vector2(54f, 54f), rockSprite);
-
-        Sprite playIconSprite = LoadWeaponSprite(19);
-        Sprite shopIconSprite = LoadTileSprite(39);
-        Sprite quitIconSprite = LoadInterfaceSprite(55);
-        Color goldTint = new Color(1f, 0.84f, 0f);
-
-        Button playBtn;
-        Text playTxt = CreatePixelButtonWithIcon(frameGO.transform, "PlayButton", "OYNA", 0.56f,
-            new Vector2(340f, 92f), borderColor, rustColor, builtinFont, 36, playIconSprite, Color.white, out playBtn);
-
-        Button shopBtn;
-        Text shopTxt = CreatePixelButtonWithIcon(frameGO.transform, "ShopButton", "MAGAZA", 0.36f,
-            new Vector2(340f, 80f), borderColor, slateMenuColor, builtinFont, 30, shopIconSprite, goldTint, out shopBtn);
-
-        Button quitBtn;
-        Text quitTxt = CreatePixelButtonWithIcon(frameGO.transform, "QuitButton", "CIKIS", 0.18f,
-            new Vector2(340f, 80f), borderColor, oliveColor, builtinFont, 30, quitIconSprite, Color.white, out quitBtn);
-
-        Text bestTimeTxt = CreateBestTimeLabel(frameGO.transform, new Vector2(0.5f, 0.045f));
+        Text bestTimeTxt = CreateBestTimeLabel(panelGO.transform, new Vector2(0.5f, 0.09f));
         MakeReadable(bestTimeTxt, 24, 1.5f);
+        bestTimeTxt.color = new Color(1f, 0.87f, 0.43f);
 
-        title = titleTxt;
-        playText = playTxt;
-        shopText = shopTxt;
-        quitText = quitTxt;
         bestTimeText = bestTimeTxt;
         return panelGO;
+    }
+
+    // Loads one of the hand-approved custom menu sprites from
+    // Assets/Sprites/Custom - same simple-sprite convention as the held
+    // knife visuals (LoadCustomSprite wasn't needed before because every
+    // other screen's art is drawn procedurally or reuses a Kenney tile).
+    Sprite LoadCustomSprite(string fileName)
+    {
+        return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/" + fileName);
+    }
+
+    // A full-image button: unlike CreatePixelButtonWithIcon (which
+    // composites a border+fill+icon+text from separate pieces), the
+    // whole button - border, fill, icon and label - is one pre-drawn
+    // sprite from Berra's approved mockup. Width is fixed and height is
+    // derived from the sprite's own aspect ratio so it never looks
+    // stretched. yAnchor positions it vertically within its parent
+    // (0 = bottom, 1 = top), horizontally centered - same convention
+    // CreatePixelButton/CreatePixelButtonWithIcon already use.
+    void CreateImageButton(Transform parent, string name, Sprite sprite, float yAnchor, float width, out Button button)
+    {
+        GameObject btnGO = new GameObject(name, typeof(RectTransform));
+        btnGO.transform.SetParent(parent, false);
+        Image img = btnGO.AddComponent<Image>();
+        img.sprite = sprite;
+        img.preserveAspect = true;
+        button = btnGO.AddComponent<Button>();
+
+        float height = width * 0.19f;
+        if (sprite != null && sprite.rect.width > 0f) height = width * sprite.rect.height / sprite.rect.width;
+
+        RectTransform rect = btnGO.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, yAnchor);
+        rect.anchorMax = new Vector2(0.5f, yAnchor);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(width, height);
+        rect.anchoredPosition = Vector2.zero;
     }
 
     // Builds one "chunky pixel" button: an outer border-colored rect with a
