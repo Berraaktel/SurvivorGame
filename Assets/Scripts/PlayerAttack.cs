@@ -15,6 +15,23 @@ public class PlayerAttack : MonoBehaviour
     public int maxLevel = 5;
     public bool evolved = false;
 
+    // The knife the character visibly holds in hand, separate from the
+    // thrown Projectile instances - those fly fast and briefly, so on
+    // their own the level/evolution progress never actually reads on
+    // screen (direct feedback: throws go by too fast to notice a tint
+    // change). This one sits in the character's hand at all times and
+    // steps through heldKnifeSprites as level rises, so the upgrade is
+    // visible even between throws. Wired by BuildGameUITool's "Build Held
+    // Knife Visual" button - left null-safe here so nothing breaks if it
+    // hasn't been run yet.
+    public SpriteRenderer heldKnifeRenderer;
+    public Sprite[] heldKnifeSprites;
+
+    void Start()
+    {
+        UpdateHeldKnifeVisual();
+    }
+
     void Update()
     {
         timer += Time.deltaTime;
@@ -36,6 +53,20 @@ public class PlayerAttack : MonoBehaviour
         level++;
         damage += 1;
         attackInterval = Mathf.Max(0.35f, attackInterval - 0.05f);
+        UpdateHeldKnifeVisual();
+    }
+
+    // heldKnifeSprites[0] is the plain level-1 knife, heldKnifeSprites[^1]
+    // is the full evolved look - everything between is a hand-tuned step
+    // toward it (extra blades fading in, color shifting gold), so just
+    // indexing by level-1 is enough; no separate evolved-only swap needed
+    // since level is already pinned at maxLevel by the time evolved
+    // becomes true.
+    void UpdateHeldKnifeVisual()
+    {
+        if (heldKnifeRenderer == null || heldKnifeSprites == null || heldKnifeSprites.Length == 0) return;
+        int index = Mathf.Clamp(level - 1, 0, heldKnifeSprites.Length - 1);
+        if (heldKnifeSprites[index] != null) heldKnifeRenderer.sprite = heldKnifeSprites[index];
     }
 
     void CheckEvolution()

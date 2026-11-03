@@ -5,6 +5,8 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     private Rigidbody2D rb;
     private SpriteRenderer sr;
+    private Transform heldKnife;
+    private float heldKnifeBaseX;
     private Vector2 moveInput;
 
     void Awake()
@@ -18,6 +20,21 @@ public class PlayerMovement : MonoBehaviour
         // affects whichever SpriteRenderer is actually rendering.
         Transform visual = transform.Find("SpriteVisual");
         sr = visual != null ? visual.GetComponent<SpriteRenderer>() : GetComponent<SpriteRenderer>();
+
+        // The held-knife visual (see BuildGameUITool's "Build Held Knife
+        // Visual") sits off to one side of the character to read as being
+        // in-hand. SpriteRenderer.flipX only flips the drawn texture, not
+        // child transforms, so without this the knife would stay stuck on
+        // the same side even after turning around and facing the other way.
+        if (visual != null)
+        {
+            Transform knife = visual.Find("HeldKnife");
+            if (knife != null)
+            {
+                heldKnife = knife;
+                heldKnifeBaseX = Mathf.Abs(knife.localPosition.x);
+            }
+        }
     }
 
     void Update()
@@ -46,6 +63,12 @@ public class PlayerMovement : MonoBehaviour
         {
             if (moveInput.x > 0.01f) sr.flipX = false;
             else if (moveInput.x < -0.01f) sr.flipX = true;
+        }
+
+        if (heldKnife != null)
+        {
+            if (moveInput.x > 0.01f) heldKnife.localPosition = new Vector3(heldKnifeBaseX, heldKnife.localPosition.y, heldKnife.localPosition.z);
+            else if (moveInput.x < -0.01f) heldKnife.localPosition = new Vector3(-heldKnifeBaseX, heldKnife.localPosition.y, heldKnife.localPosition.z);
         }
     }
 

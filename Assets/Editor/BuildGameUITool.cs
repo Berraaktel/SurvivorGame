@@ -154,6 +154,13 @@ public class BuildGameUITool : EditorWindow
         }
 
         EditorGUILayout.Space();
+        EditorGUILayout.HelpBox("Bu buton oyuncunun elinde surekli gorunen bir bicak ekler (atilan projectile'lardan ayri) - bicak seviye atlandikca Assets/Sprites/Custom/held_knife_lvl2-4.png ve knife_evolved.png arasinda kademeli olarak degisir, boylece yukseltme atislar cok hizli gectigi icin fark edilmese bile karakterin elinde her an gorunur. Once Build Ranged Weapon ve Build Player Animation calismis olmali.", MessageType.Info);
+        if (GUILayout.Button("Build Held Knife Visual"))
+        {
+            BuildHeldKnifeVisual();
+        }
+
+        EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Bu buton ikinci bir silah ekler: oyuncunun etrafinda surekli donen, dokundugu dusmanlara hasar veren bicaklar.", MessageType.Info);
         if (GUILayout.Button("Build Orbit Weapon (Spinning Blades)"))
         {
@@ -1666,6 +1673,82 @@ public class BuildGameUITool : EditorWindow
 
         AssetDatabase.SaveAssets();
         Debug.Log("Menzilli silah kuruldu: oyuncu artik bicak firlatiyor.");
+        SaveScene();
+    }
+
+    void BuildHeldKnifeVisual()
+    {
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj == null)
+        {
+            Debug.LogWarning("Player tagli obje bulunamadi.");
+            return;
+        }
+
+        Transform visualT = playerObj.transform.Find("SpriteVisual");
+        if (visualT == null)
+        {
+            Debug.LogWarning("SpriteVisual bulunamadi - once Build Player Animation calistirin.");
+            return;
+        }
+
+        SpriteRenderer visualSR = visualT.GetComponent<SpriteRenderer>();
+
+        Transform knifeT = visualT.Find("HeldKnife");
+        GameObject knifeGO = knifeT != null ? knifeT.gameObject : null;
+        if (knifeGO == null)
+        {
+            knifeGO = new GameObject("HeldKnife");
+            knifeGO.transform.SetParent(visualT, false);
+        }
+
+        SpriteRenderer knifeSR = knifeGO.GetComponent<SpriteRenderer>();
+        if (knifeSR == null) knifeSR = knifeGO.AddComponent<SpriteRenderer>();
+
+        // Sits slightly to the character's hand side and a touch forward -
+        // not anatomically exact (the Kenney sprite has no drawn hand to
+        // anchor to) but reads as "held at the hip" at this scale. Berra
+        // can nudge HeldKnife's Transform in the Inspector afterward if she
+        // wants it positioned differently once she sees it in game.
+        knifeGO.transform.localPosition = new Vector3(0.09f, -0.04f, 0f);
+        knifeGO.transform.localRotation = Quaternion.identity;
+        knifeGO.transform.localScale = Vector3.one * 0.8f;
+
+        if (visualSR != null)
+        {
+            knifeSR.sortingLayerID = visualSR.sortingLayerID;
+            knifeSR.sortingOrder = visualSR.sortingOrder + 1;
+        }
+
+        Sprite lvl1 = LoadWeaponSprite(8);
+        Sprite lvl2 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl2.png");
+        Sprite lvl3 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl3.png");
+        Sprite lvl4 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/held_knife_lvl4.png");
+        Sprite lvl5 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Custom/knife_evolved.png");
+
+        if (lvl1 == null || lvl2 == null || lvl3 == null || lvl4 == null || lvl5 == null)
+        {
+            Debug.LogWarning("Elde tutulan bicak gorsellerinden biri bulunamadi - Assets/Sprites/Custom icindeki held_knife_lvl2/3/4.png ve knife_evolved.png dosyalarinin proje icinde oldugundan emin olun.");
+        }
+
+        Sprite[] levelSprites = { lvl1, lvl2, lvl3, lvl4, lvl5 };
+        knifeSR.sprite = lvl1;
+
+        PlayerAttack attack = playerObj.GetComponent<PlayerAttack>();
+        if (attack != null)
+        {
+            attack.heldKnifeRenderer = knifeSR;
+            attack.heldKnifeSprites = levelSprites;
+            EditorUtility.SetDirty(attack);
+        }
+        else
+        {
+            Debug.LogWarning("PlayerAttack bulunamadi - once Build Ranged Weapon calistirin.");
+        }
+
+        EditorUtility.SetDirty(knifeGO);
+        AssetDatabase.SaveAssets();
+        Debug.Log("Elde tutulan bicak gorseli kuruldu - seviye atlandikca kademeli olarak degisecek.");
         SaveScene();
     }
 
